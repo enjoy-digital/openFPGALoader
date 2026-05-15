@@ -106,7 +106,7 @@ class CmsisDAP: public JtagInterface {
 
 		hid_device *_dev;          /**< hid device used to communicate */
 
-		unsigned char *_ll_buffer; /**< message buffer */
+		std::vector<unsigned char> _ll_buffer; /**< message buffer */
 		unsigned char *_buffer;    /**< subset of _ll_buffer */
 		int _num_tms;              /**< current tms length */
 		int _is_connect;           /**< device status ((dis)connected) */

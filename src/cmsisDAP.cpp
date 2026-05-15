@@ -89,13 +89,11 @@ enum cmsisdap_status {
 
 CmsisDAP::CmsisDAP(const cable_t &cable, int index, int8_t verbose):_verbose(verbose>0),
 		_device_idx(0),  _vid(cable.vid), _pid(cable.pid),
-		_serial_number(L""), _dev(NULL), _num_tms(0), _is_connect(false)
+		_serial_number(L""), _dev(NULL), _ll_buffer(65), _buffer(nullptr),
+		_num_tms(0), _is_connect(false)
 {
 	std::vector<struct hid_device_info *> dev_found;
-	_ll_buffer = (unsigned char *)malloc(sizeof(unsigned char) * 65);
-	if (!_ll_buffer)
-		throw std::runtime_error("internal buffer allocation failed");
-	_buffer = _ll_buffer+2;
+	_buffer = _ll_buffer.data() + 2;
 
 	/* only hid support */
 	struct hid_device_info *devs, *cur_dev;
@@ -240,8 +238,6 @@ CmsisDAP::~CmsisDAP()
 		hid_close(_dev);
 	hid_exit();
 
-	if (_ll_buffer)
-		free(_ll_buffer);
 }
 
 /* send connect instruction (0x02) to switch
@@ -509,13 +505,13 @@ int CmsisDAP::xfer(uint8_t instruction, int tx_len,
 	_ll_buffer[0] = 0;
 	_ll_buffer[1] = instruction;
 
-	int ret = hid_write(_dev, _ll_buffer, 65);
+	int ret = hid_write(_dev, _ll_buffer.data(), 65);
 	if (ret == -1) {
 		printf("Error\n");
 		return ret;
 	}
 
-	ret = hid_read_timeout(_dev, _ll_buffer, 65, 1000);
+	ret = hid_read_timeout(_dev, _ll_buffer.data(), 65, 1000);
 	if (ret <= 0) {
 		if (ret == 0)
 			printError("Error timeout\n");
@@ -545,13 +541,13 @@ int CmsisDAP::xfer(int tx_len, uint8_t *rx_buff, int rx_len)
 
 	_ll_buffer[0] = 0;
 
-	int ret = hid_write(_dev, _ll_buffer, 65);
+	int ret = hid_write(_dev, _ll_buffer.data(), 65);
 	if (ret == -1) {
 		printf("Error\n");
 		return ret;
 	}
 
-	ret = hid_read_timeout(_dev, _ll_buffer, 65, 1000);
+	ret = hid_read_timeout(_dev, _ll_buffer.data(), 65, 1000);
 	if (ret <= 0) {
 		if (ret == 0)
 			printf("Error timeout\n");
@@ -560,7 +556,7 @@ int CmsisDAP::xfer(int tx_len, uint8_t *rx_buff, int rx_len)
 		return ret;
 	}
 	if (rx_len)
-		memmove(rx_buff, _ll_buffer, rx_len);
+		memmove(rx_buff, _ll_buffer.data(), rx_len);
 
 
 	return ret;
