@@ -48,8 +48,8 @@ enum {
 
 GowinGWU2x::GowinGWU2x(cable_t *cable, uint32_t clkHz, int8_t verbose):
 	libusb_ll(0, 0, verbose), _verbose(verbose > 1), _cable(cable),
-	_usb_dev(nullptr), _dev(nullptr), _xfer_buf(nullptr), _xfer_pos(0),
-	_buffer_len(256 + 2 + 1)
+	_usb_dev(nullptr), _dev(nullptr), _xfer_buf(256 + 2 + 1), _xfer_pos(0),
+	_buffer_len(static_cast<uint32_t>(_xfer_buf.size()))
 {
 	const int found = get_devices_list(_cable);
 	if (found == 0)
@@ -72,8 +72,6 @@ GowinGWU2x::GowinGWU2x(cable_t *cable, uint32_t clkHz, int8_t verbose):
 		throw std::runtime_error(mess);
 	}
 
-	_xfer_buf = new uint8_t[_buffer_len];  // one full TDI packet + readback cmd
-
 	/* cable configuration */
 	if (!store_seq(GWU2X_GPIO_CONF_LOW,  // gpio0-7
 			cable->config.bit_low_dir,   // direction
@@ -93,7 +91,6 @@ GowinGWU2x::GowinGWU2x(cable_t *cable, uint32_t clkHz, int8_t verbose):
 GowinGWU2x::~GowinGWU2x()
 {
 	flush();
-	delete _xfer_buf;
 	/* nothing about interface ? */
 	libusb_close(_dev);
 }
@@ -312,7 +309,7 @@ bool GowinGWU2x::xfer(uint8_t *rx, uint16_t rx_len, const uint16_t timeout)
 	}
 
 	ret = libusb_bulk_transfer(_dev, EP_OUT,
-			_xfer_buf, _xfer_pos, &actual_length, timeout);
+			_xfer_buf.data(), _xfer_pos, &actual_length, timeout);
 	if (ret < 0) {
 		printError("Write failed with error " + std::to_string(ret));
 		return false;
@@ -404,14 +401,14 @@ void GowinGWU2x::displayCmd()
 					b_len + 1, tdi);
 				break;
 			case GWU2X_TDI_LSB_BYTE_WRO:
-				memcpy(bytes, _xfer_buf, b_len + 1);
+				memcpy(bytes, _xfer_buf.data(), b_len + 1);
 				len += b_len + 1;
 				snprintf(message, 256,
 					"TDI Byte Write Only len %d TDI: %2x",
 					b_len + 1, bytes[0]);
 				break;
 			case GWU2X_TDI_LSB_BYTE_RDWR:
-				memcpy(bytes, _xfer_buf, b_len + 1);
+				memcpy(bytes, _xfer_buf.data(), b_len + 1);
 				len += b_len + 1;
 				snprintf(message, 256,
 					"TDI Byte Read/Write len %d TDI: %2x",

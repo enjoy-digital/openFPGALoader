@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <vector>
 
 #include "cable.hpp"
 #include "jtagInterface.hpp"
@@ -83,7 +84,7 @@ class GowinGWU2x: public JtagInterface, private libusb_ll
 	cable_t *_cable;
 	struct libusb_device *_usb_dev;
 	struct libusb_device_handle *_dev;
-	uint8_t *_xfer_buf;   /* internal buffer */
+	std::vector<uint8_t> _xfer_buf; /* internal buffer */
 	uint32_t _xfer_pos;   /* number of Bytes already stored in _xfer_buf */
 	uint32_t _buffer_len; /* _xfer_buf capacity (Byte) */
 };
