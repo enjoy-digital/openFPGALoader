@@ -28,9 +28,8 @@
 
 XVC_client::XVC_client(const std::string &ip_addr, int port,
 		uint32_t clkHz, int8_t verbose):
-	_verbose(verbose > 0), _xfer_buf(NULL), _tms(NULL), _tditdo(NULL),
-	_num_bits(0), _last_tms(0), _last_tdi(0), _buffer_size(0), _sock(0),
-	_port(port)
+	_verbose(verbose > 0), _num_bits(0), _last_tms(0), _last_tdi(0),
+	_buffer_size(0), _sock(0), _port(port)
 {
 	if (!open_connection(ip_addr))
 		throw std::runtime_error("connection failure");
@@ -52,13 +51,9 @@ XVC_client::XVC_client(const std::string &ip_addr, int port,
 	_server_vers = std::move(toto[1]);
 	_buffer_size = stoi(toto[2]) / 2;  // buffer_size is for tms + tdi
 
-	_xfer_buf = reinterpret_cast<uint8_t *>(malloc(sizeof(uint8_t)
-				* ((2*_buffer_size) + 4)));
-	_tms = reinterpret_cast<uint8_t *>(malloc(sizeof(uint8_t) * _buffer_size));
-	_tditdo = reinterpret_cast<uint8_t *>(malloc(sizeof(uint8_t) *
-				_buffer_size));
-	if (!_xfer_buf || !_tms || !_tditdo)
-		throw std::runtime_error("buffer allocation failure");
+	_xfer_buf.resize((2 * _buffer_size) + 4);
+	_tms.resize(_buffer_size);
+	_tditdo.resize(_buffer_size);
 
 	char disp[2048];
 	snprintf(disp, sizeof(disp), "detected %s version %s packet size %u",
@@ -75,13 +70,6 @@ XVC_client::~XVC_client()
 	if (_num_bits != 0)
 		flush();
 
-	// cleanup
-	if (_xfer_buf)
-		free(_xfer_buf);
-	if (_tms)
-		free(_tms);
-	if (_tditdo)
-		free(_tditdo);
 	// close socket
 	close(_sock);
 }
@@ -139,8 +127,8 @@ int XVC_client::writeTDI(const uint8_t *tx, uint8_t *rx, uint32_t len, bool end)
 		if ((xfer_len + rest) > len)  // len < buffer size
 			xfer_len = len - rest;  // reduce xfer len
 		uint16_t tt = (xfer_len + 7) >> 3;  // convert to Byte
-		memset(_tms, tms, tt);  // fill tms buffer
-		memcpy(_tditdo, tx_ptr, tt);  // fill tdi buffer
+		memset(_tms.data(), tms, tt);  // fill tms buffer
+		memcpy(_tditdo.data(), tx_ptr, tt);  // fill tdi buffer
 		_num_bits = xfer_len;  // set buffer size in bit
 		if (end && xfer_len + rest == len) {  // last sequence: set tms 1
 			_last_tms = 1;
@@ -178,8 +166,8 @@ int XVC_client::toggleClk(uint8_t tms, uint8_t tdi, uint32_t clk_len)
 	if (_num_bits != 0)
 		flush();
 
-	memset(_tditdo, curr_tdi, _buffer_size);
-	memset(_tms, curr_tms, _buffer_size);
+	memset(_tditdo.data(), curr_tdi, _buffer_size);
+	memset(_tms.data(), curr_tms, _buffer_size);
 	do {
 		_num_bits = _buffer_size * 8;
 		if (len < _num_bits)
@@ -208,13 +196,13 @@ int XVC_client::setClkFreq(uint32_t clkHz)
 	_xfer_buf[2] = static_cast<uint8_t>((clk_period >> 16) & 0xff);
 	_xfer_buf[3] = static_cast<uint8_t>((clk_period >> 24) & 0xff);
 
-	if (xfer_pkt("settck:", _xfer_buf, 4, _xfer_buf, 4) <= 0) {
+	if (xfer_pkt("settck:", _xfer_buf.data(), 4, _xfer_buf.data(), 4) <= 0) {
 		printError("setClkFreq: fail to configure frequency");
 		return -EXIT_FAILURE;
 	}
 
 	printf("freq %d %lf %d %d\n", clkHz, clk_periodf, clk_period,
-			atoi((const char *)_xfer_buf));
+			atoi((const char *)_xfer_buf.data()));
 	printf("%x %x %x %x\n", _xfer_buf[0], _xfer_buf[1],
 			_xfer_buf[2], _xfer_buf[3]);
 
@@ -308,16 +296,16 @@ bool XVC_client::ll_write(uint8_t *tdo)
 	_xfer_buf[1] = static_cast<uint8_t>((_num_bits >>  8) & 0xff);
 	_xfer_buf[2] = static_cast<uint8_t>((_num_bits >> 16) & 0xff);
 	_xfer_buf[3] = static_cast<uint8_t>((_num_bits >> 24) & 0xff);
-	memcpy(_xfer_buf + 4, _tms, numbytes);
-	memcpy(_xfer_buf + 4 + numbytes, _tditdo, numbytes);
+	memcpy(_xfer_buf.data() + 4, _tms.data(), numbytes);
+	memcpy(_xfer_buf.data() + 4 + numbytes, _tditdo.data(), numbytes);
 
-	if ((ret = xfer_pkt("shift:\0", _xfer_buf, (2 * numbytes) + 4,
-					_tditdo, numbytes)) < 0)
+	if ((ret = xfer_pkt("shift:\0", _xfer_buf.data(), (2 * numbytes) + 4,
+					_tditdo.data(), numbytes)) < 0)
 		return false;
 	_num_bits = 0;  // clear counter
 
 	if (tdo)
-		memcpy(tdo, _tditdo, numbytes);
+		memcpy(tdo, _tditdo.data(), numbytes);
 
 	return true;
 }

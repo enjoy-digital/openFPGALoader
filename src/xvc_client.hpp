@@ -7,6 +7,7 @@
 #define SRC_XVC_CLIENT_HPP_
 
 #include <string>
+#include <vector>
 
 #include "jtagInterface.hpp"
 
@@ -110,9 +111,9 @@ class XVC_client: public JtagInterface {
 
 		bool _verbose; /*!< display information */
 
-		uint8_t *_xfer_buf; /*!> tx buffer */
-		uint8_t *_tms;      /*!< TMS internal buffer */
-		uint8_t *_tditdo;   /*!< TDI/TDO internal buffer */
+		std::vector<uint8_t> _xfer_buf; /*!> tx buffer */
+		std::vector<uint8_t> _tms;      /*!< TMS internal buffer */
+		std::vector<uint8_t> _tditdo;   /*!< TDI/TDO internal buffer */
 		uint32_t _num_bits; /*!< number of bits stored */
 		uint32_t _last_tms; /*!< last known TMS state */
 		uint32_t _last_tdi; /*!< last known TDI state */
