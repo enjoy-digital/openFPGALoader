@@ -23,13 +23,13 @@ class Board:
     SPIFlash: Optional[str] = None
 
 
-def ReadBoardDataFromYAML() -> List[Board]:
+def read_board_data_from_yaml() -> List[Board]:
     with (ROOT / 'boards.yml').open('r', encoding='utf-8') as fptr:
         data = [Board(**item) for item in safe_load(fptr)]
     return data
 
 
-def BoardDataToTable(data: List[Board], tablefmt: str = "rst") -> str:
+def board_data_to_table(data: List[Board], tablefmt: str = "rst") -> str:
     def processConstraints(constraints: Optional[Union[str, List[str]]]) -> Optional[str]:
         if constraints is None:
             return None
@@ -65,7 +65,7 @@ class FPGA:
     Flash: Optional[str] = None
 
 
-def ReadFPGADataFromYAML() -> Dict[str, List[FPGA]]:
+def read_fpga_data_from_yaml() -> Dict[str, List[FPGA]]:
     with (ROOT / 'FPGAs.yml').open('r', encoding='utf-8') as fptr:
         data = safe_load(fptr)
         for vendor, content in data.items():
@@ -73,7 +73,7 @@ def ReadFPGADataFromYAML() -> Dict[str, List[FPGA]]:
     return data
 
 
-def FPGADataToTable(data: Dict[str, List[FPGA]], tablefmt: str = "rst") -> str:
+def fpga_data_to_table(data: Dict[str, List[FPGA]], tablefmt: str = "rst") -> str:
     return tabulate(
         [
             [
@@ -97,7 +97,7 @@ class Cable:
     Note: Optional[str] = None
 
 
-def ReadCableDataFromYAML() -> Dict[str, List[Cable]]:
+def read_cable_data_from_yaml() -> Dict[str, List[Cable]]:
     with (ROOT / 'cable.yml').open('r', encoding='utf-8') as fptr:
         data = safe_load(fptr)
         for keyword, content in data.items():
@@ -105,7 +105,7 @@ def ReadCableDataFromYAML() -> Dict[str, List[Cable]]:
     return data
 
 
-def CableDataToTable(data: Dict[str, List[Cable]], tablefmt: str = "rst") -> str:
+def cable_data_to_table(data: Dict[str, List[Cable]], tablefmt: str = "rst") -> str:
     def processURL(name: str, url: Optional[str]) -> str:
         if url is None:
             return f"{name}"
@@ -123,3 +123,11 @@ def CableDataToTable(data: Dict[str, List[Cable]], tablefmt: str = "rst") -> str
         headers=["keyword", "Name", "Description", "Note"],
         tablefmt=tablefmt
     )
+
+
+ReadBoardDataFromYAML = read_board_data_from_yaml
+BoardDataToTable = board_data_to_table
+ReadFPGADataFromYAML = read_fpga_data_from_yaml
+FPGADataToTable = fpga_data_to_table
+ReadCableDataFromYAML = read_cable_data_from_yaml
+CableDataToTable = cable_data_to_table

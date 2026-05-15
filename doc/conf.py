@@ -13,12 +13,12 @@ sys_path.insert(0, abspath("."))
 
 
 from data import (
-    ReadBoardDataFromYAML,
-    BoardDataToTable,
-    ReadFPGADataFromYAML,
-    FPGADataToTable,
-    ReadCableDataFromYAML,
-    CableDataToTable
+    read_board_data_from_yaml,
+    board_data_to_table,
+    read_fpga_data_from_yaml,
+    fpga_data_to_table,
+    read_cable_data_from_yaml,
+    cable_data_to_table
 )
 
 # -- General configuration ------------------------------------------------
@@ -123,13 +123,13 @@ extlinks = {
 # -- Generate partial board compatibility page (`board.inc`) with data from `boards.yml`
 
 with (ROOT / "compatibility/boards.inc").open("w", encoding="utf-8") as wptr:
-    wptr.write(BoardDataToTable(ReadBoardDataFromYAML()))
+    wptr.write(board_data_to_table(read_board_data_from_yaml()))
 
 # -- Generate partial FPGA compatibility page (`fpga.inc`) with data from `FPGAs.yml`
 
 with (ROOT / "compatibility/fpga.inc").open("w", encoding="utf-8") as wptr:
-    wptr.write(FPGADataToTable(ReadFPGADataFromYAML()))
+    wptr.write(fpga_data_to_table(read_fpga_data_from_yaml()))
 # -- Generate partial Cable compatibility page (`cable.inc`) with data from `cable.yml`
 
 with (ROOT / "compatibility/cable.inc").open("w", encoding="utf-8") as wptr:
-    wptr.write(CableDataToTable(ReadCableDataFromYAML()))
+    wptr.write(cable_data_to_table(read_cable_data_from_yaml()))
