@@ -48,8 +48,9 @@ option(ENABLE_DIRTYJTAG        "enable dirtyJtag cable (requires libUSB)"     ${
 option(ENABLE_ESP_USB          "enable ESP32S3 cable (requires libUSB)"       ${ENABLE_CABLE_ALL})
 option(ENABLE_JLINK            "enable JLink cable (requires libUSB)"         ${ENABLE_CABLE_ALL})
 option(ENABLE_DFU              "enable DFU support (requires libUSB)"         ${ENABLE_CABLE_ALL})
-option(ENABLE_FTDI_BASED_CABLE "enable cables based on FTDI (requires libFTDI" ${ENABLE_CABLE_ALL})
+option(ENABLE_FTDI_BASED_CABLE "enable cables based on FTDI (requires libFTDI)" ${ENABLE_CABLE_ALL})
 option(ENABLE_GOWIN_GWU2X      "enable Gowin GWU2X interface"                 ${ENABLE_CABLE_ALL})
+option(ENABLE_JETSONNANOGPIO   "enable Jetson Nano GPIO bitbang driver"       OFF)
 option(ENABLE_SVF_JTAG         "enable SVF support"                           ${ENABLE_CABLE_ALL})
 option(ENABLE_USB_BLASTERI     "enable Altera USB Blaster I support"          ${ENABLE_CABLE_ALL})
 option(ENABLE_USB_BLASTERII    "enable Altera USB Blaster II support"         ${ENABLE_CABLE_ALL})
@@ -337,7 +338,7 @@ if (${ENABLE_LATTICE_SUPPORT} OR ${ENABLE_XILINX_SUPPORT})
 endif()
 
 # ===========================
-# To be sorted
+# Flash and JTAG core support
 # ===========================
 list(APPEND OPENFPGALOADER_SOURCE
 	src/bpiFlash.cpp
@@ -787,7 +788,7 @@ if (ENABLE_XILINX_PLATFORM_CABLE_USB)
 	add_definitions(-DENABLE_XILINX_PLATFORM_CABLE_USB=1)
 	message("Xilinx Platform Cable USB (XPCU) support enabled")
 else()
-	message("Xilinx Platform Cable USB (XCPU) support disabled")
+	message("Xilinx Platform Cable USB (XPCU) support disabled")
 endif()
 
 if (ENABLE_XILINX_VIRTUAL_CABLE_CLIENT)

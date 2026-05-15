@@ -143,7 +143,7 @@ for any corresponding short options.
 Report bugs to <gwenhael.goavec-merou@trabucayre.com>.
 ```
 
-By default **spiOverJtag** are search into `${CMAKE_INSTALL_FULL_DATAROOTDIR}`
+By default **spiOverJtag** bitstreams are searched for in `${CMAKE_INSTALL_FULL_DATAROOTDIR}`
 (*/usr/local/share/* by default). It's possible to change this behaviour by
 using an environment variable:
 

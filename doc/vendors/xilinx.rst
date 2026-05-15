@@ -69,7 +69,7 @@ SPI flash
 .. WARNING::
   For boards based on Zynq device (7000 and MPSoC) SPI flash is not accessible through PL.
 
-.. code-block:: tcl
+.. code-block:: text
 
    set project [lindex $argv 0]
 

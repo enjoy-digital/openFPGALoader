@@ -1,4 +1,5 @@
 .. _intel:
+.. _altera:
 
 Intel notes
 ###########

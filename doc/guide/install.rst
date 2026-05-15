@@ -143,7 +143,7 @@ To install
 
     $ sudo make install
 
-The default install path is ``/usr/local``, to change it, use ``-DCMAKE_INSTALL_PREFIX=myInstallDir`` in cmake invokation.
+The default install path is ``/usr/local``. To change it, use ``-DCMAKE_INSTALL_PREFIX=myInstallDir`` in the CMake invocation.
 
 Udev rules
 ----------
