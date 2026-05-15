@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -40,18 +41,19 @@
 
 UsbBlaster::UsbBlaster(const cable_t &cable, const std::string &firmware_path,
 		int8_t verbose):
-			_verbose(verbose > 1), _nb_bit(0),
-			_curr_tms(0), _buffer_size(64)
+			ll_driver(nullptr), _in_buf(64), _verbose(verbose > 1),
+			_nb_bit(0), _curr_tms(0),
+			_buffer_size(static_cast<uint16_t>(_in_buf.size()))
 {
 	if (cable.pid == 0x6001 || cable.pid == 0x6002 || cable.pid == 0x6003)
 #ifdef ENABLE_USB_BLASTERI
-		ll_driver = new UsbBlasterI();
+		ll_driver = std::make_unique<UsbBlasterI>();
 #else
 		throw std::runtime_error("usb-blasterI: Not build");
 #endif
 	else if (cable.pid == 0x6810 || cable.pid == 0x6010)
 #ifdef ENABLE_USB_BLASTERII
-		ll_driver = new UsbBlasterII(firmware_path);
+		ll_driver = std::make_unique<UsbBlasterII>(firmware_path);
 #else
 		throw std::runtime_error("usb-blasterII: Not build");
 #endif
@@ -62,10 +64,7 @@ UsbBlaster::UsbBlaster(const cable_t &cable, const std::string &firmware_path,
 	_tms_pin = (1 << 1);
 	_tdi_pin = (1 << 4);
 
-	_in_buf = (unsigned char *)malloc(sizeof(unsigned char) * _buffer_size);
-
 	_nb_bit = 0;
-	memset(_in_buf, 0, _buffer_size);
 
 #ifdef ENABLE_USB_BLASTERI
 	/* Force flush internal FT245 internal buffer */
@@ -87,7 +86,6 @@ UsbBlaster::~UsbBlaster()
 {
 	_in_buf[_nb_bit++] = 0;
 	flush();
-	free(_in_buf);
 }
 
 int UsbBlaster::setClkFreq(uint32_t clkHZ)
@@ -311,7 +309,7 @@ int UsbBlaster::writeByte(uint8_t *tdo, int nb_byte)
 {
 	int ret = write(tdo != NULL, nb_byte);
 	if (tdo && ret > 0)
-		memcpy(tdo, _in_buf, nb_byte);
+		memcpy(tdo, _in_buf.data(), nb_byte);
 	return ret;
 }
 
@@ -342,8 +340,8 @@ int UsbBlaster::write(bool read, int rd_len)
 	if (_nb_bit == 0)
 		return 0;
 
-	int ret = ll_driver->write(_in_buf, _nb_bit,
-			(read)?_in_buf:NULL, rd_len);
+	int ret = ll_driver->write(_in_buf.data(), _nb_bit,
+			(read) ? _in_buf.data() : NULL, rd_len);
 	_nb_bit = 0;
 	return ret;
 }
@@ -458,7 +456,7 @@ UsbBlasterII::UsbBlasterII(const std::string &firmware_path)
 		fpath = BLASTERII_DIR "/blaster_6810.hex";
 	else
 		fpath = firmware_path;
-	fx2 = new FX2_ll(0x09fb, 0x6810, 0x09fb, 0x6010, fpath);
+	fx2 = std::make_unique<FX2_ll>(0x09fb, 0x6810, 0x09fb, 0x6010, fpath);
 	if (!fx2->read_ctrl(0x94, 0, buf, 5, 0x0000)) {
 		throw std::runtime_error("Unable to read firmware version.");
 	}
@@ -467,7 +465,6 @@ UsbBlasterII::UsbBlasterII(const std::string &firmware_path)
 
 UsbBlasterII::~UsbBlasterII()
 {
-	delete fx2;
 }
 
 int UsbBlasterII::setClkFreq(uint32_t clkHZ)

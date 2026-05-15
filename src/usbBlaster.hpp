@@ -9,6 +9,7 @@
 #include <ftdi.h>
 #endif
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -83,12 +84,12 @@ class UsbBlaster : public JtagInterface {
 	int flush() override;
 
  private:
-	UsbBlaster_ll *ll_driver;
+	std::unique_ptr<UsbBlaster_ll> ll_driver;
 	int writeByte(uint8_t *tdo, int nb_byte);
 	int writeBit(uint8_t *tdo, int nb_bit);
 	int write(bool read, int rd_len);
 	int setBitmode(uint8_t mode);
-	uint8_t *_in_buf;
+	std::vector<uint8_t> _in_buf;
 
 	int8_t _verbose;
 	uint8_t _tck_pin; /*!< tck pin: 1 << pin id */
@@ -137,7 +138,7 @@ class UsbBlasterII: public UsbBlaster_ll {
 		int write(uint8_t *wr_buf, int wr_len,
 				uint8_t *rd_buf, int rd_len) override;
 	private:
-		FX2_ll *fx2;
+		std::unique_ptr<FX2_ll> fx2;
 };
 #endif
 #endif  // SRC_USBBLASTER_HPP_
