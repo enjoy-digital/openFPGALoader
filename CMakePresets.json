@@ -1,0 +1,22 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Default",
+      "description": "Configure the default openFPGALoader build.",
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "minimal",
+      "displayName": "Minimal",
+      "description": "Configure a minimal build without cable, vendor, or USB scan backends.",
+      "binaryDir": "${sourceDir}/build-minimal",
+      "cacheVariables": {
+        "ENABLE_CABLE_ALL": "OFF",
+        "ENABLE_VENDORS_ALL": "OFF",
+        "ENABLE_USB_SCAN": "OFF"
+      }
+    }
+  ]
+}
