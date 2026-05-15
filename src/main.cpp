@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <vector>
 
@@ -314,7 +315,7 @@ int main(int argc, char **argv)
 	if (args.dfu || (board && board->mode == COMM_DFU)) {
 #ifdef ENABLE_DFU
 		/* try to init DFU probe */
-		DFU *dfu = NULL;
+		std::unique_ptr<DFU> dfu;
 		uint16_t vid = 0, pid = 0;
 		int altsetting = -1;
 		if (board) {
@@ -340,8 +341,8 @@ int main(int argc, char **argv)
 		}
 
 		try {
-			dfu = new DFU(args.bit_file, args.detect, vid, pid, altsetting,
-					args.verbose);
+			dfu = std::make_unique<DFU>(args.bit_file, args.detect, vid, pid,
+					altsetting, args.verbose);
 		} catch (std::exception &e) {
 			printError("DFU init failed with: " + std::string(e.what()));
 			return EXIT_FAILURE;
@@ -666,17 +667,15 @@ int run_xvc_server(const struct arguments &args, const cable_t &cable,
 {
 	// create XVC instance
 	try {
-		XVC_server *xvc = NULL;
-		xvc = new XVC_server(args.port, cable, pins_config, args.device,
+		XVC_server xvc(args.port, cable, pins_config, args.device,
 				args.usb_serial_num, args.freq, args.verbose, args.ip_adr,
 				args.invert_read_edge, args.probe_firmware);
 		/* create connection */
-		xvc->open_connection();
+		xvc.open_connection();
 		/* start loop */
-		xvc->listen_loop();
+		xvc.listen_loop();
 		/* close connection */
-		xvc->close_connection();
-		delete xvc;
+		xvc.close_connection();
 	} catch (std::exception &e) {
 		printError("XVC_server failed with " + std::string(e.what()));
 		return EXIT_FAILURE;
