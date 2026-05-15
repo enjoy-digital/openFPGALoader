@@ -13,9 +13,12 @@ sudo apt install -y cmake gzip libftdi1-dev libhidapi-dev libudev-dev pkg-config
 Configure and build from a separate build directory:
 
 ```bash
-cmake -S . -B build
+cmake --preset default
 cmake --build build
 ```
+
+If your CMake version does not support presets, use `cmake -S . -B build`
+instead.
 
 Run a basic executable smoke check:
 
@@ -29,11 +32,17 @@ For changes that should not depend on cable or FPGA vendor backends, also run a
 minimal feature build:
 
 ```bash
+cmake --preset minimal
+cmake --build build-minimal
+```
+
+Without preset support, configure the same build manually:
+
+```bash
 cmake -S . -B build-minimal \
   -DENABLE_CABLE_ALL=OFF \
   -DENABLE_VENDORS_ALL=OFF \
   -DENABLE_USB_SCAN=OFF
-cmake --build build-minimal
 ```
 
 ## Documentation

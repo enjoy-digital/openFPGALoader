@@ -87,10 +87,7 @@ jobs:
 
     - name: '🚧 Build minimal configuration'
       run: |
-        cmake -S . -B build-minimal \
-          -DENABLE_CABLE_ALL=OFF \
-          -DENABLE_VENDORS_ALL=OFF \
-          -DENABLE_USB_SCAN=OFF
+        cmake --preset minimal
         cmake --build build-minimal
 
 
