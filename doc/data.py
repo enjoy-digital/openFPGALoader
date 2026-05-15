@@ -47,10 +47,11 @@ def BoardDataToTable(data: List[Board], tablefmt: str = "rst") -> str:
                 item.FPGA,
                 item.Memory,
                 item.Flash,
+                item.SPIFlash,
                 processConstraints(item.Constraints)
             ] for item in data
         ],
-        headers=["Board name", "Description", "FPGA", "Memory", "Flash", "Constraints"],
+        headers=["Board name", "Description", "FPGA", "Memory", "Flash", "SPI Flash", "Constraints"],
         tablefmt=tablefmt
     )
 
@@ -115,9 +116,10 @@ def CableDataToTable(data: Dict[str, List[Cable]], tablefmt: str = "rst") -> str
             [
                 f"{vendor}",
                 processURL(item.Name, item.URL),
-                item.Description
+                item.Description,
+                item.Note
             ] for vendor, content in data.items() for item in content
         ],
-        headers=["keyword", "Name", "Description"],
+        headers=["keyword", "Name", "Description", "Note"],
         tablefmt=tablefmt
     )
