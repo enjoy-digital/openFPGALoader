@@ -389,10 +389,10 @@ int main(int argc, char **argv)
 	if (args.prg_type == Device::PRG_NONE)
 		args.prg_type = Device::WR_SRAM;
 
-	Jtag *jtag;
+	std::unique_ptr<Jtag> jtag;
 	try {
-		jtag = new Jtag(cable, &pins_config, args.device, args.usb_serial_num,
-				args.freq, args.verbose, args.ip_adr, args.port,
+		jtag = std::make_unique<Jtag>(cable, &pins_config, args.device,
+				args.usb_serial_num, args.freq, args.verbose, args.ip_adr, args.port,
 				args.invert_read_edge, args.probe_firmware,
 				args.user_misc_devs);
 	} catch (std::exception &e) {
@@ -436,7 +436,6 @@ int main(int argc, char **argv)
 			}
 		}
 		if (args.detect == true) {
-			delete jtag;
 			return EXIT_SUCCESS;
 		}
 	}
@@ -451,7 +450,6 @@ int main(int argc, char **argv)
 						printError("Use --index-chain to force selection");
 						for (size_t i = 0; i < found; i++)
 							printf("0x%08x\n", listDev[i]);
-						delete(jtag);
 						return EXIT_FAILURE;
 					} else {
 						idcode = listDev[i];
@@ -462,14 +460,12 @@ int main(int argc, char **argv)
 			index = args.index_chain;
 			if (index > found) {
 				printError("wrong index for device in JTAG chain");
-				delete(jtag);
 				return EXIT_FAILURE;
 			}
 			idcode = listDev[index];
 		}
 	} else {
 		printError("Error: no device found");
-		delete(jtag);
 		return EXIT_FAILURE;
 	}
 
@@ -479,16 +475,15 @@ int main(int argc, char **argv)
 	if (!args.file_type.compare("svf") ||
 			args.bit_file.find(".svf") != std::string::npos) {
 #ifdef ENABLE_SVF_JTAG
-		SVF_jtag *svf = new SVF_jtag(jtag, args.verbose);
+		SVF_jtag svf(jtag.get(), args.verbose);
 		try {
-			svf->parse(args.bit_file);
+			svf.parse(args.bit_file);
 		} catch (std::exception &e) {
 			return EXIT_FAILURE;
 		}
 		return EXIT_SUCCESS;
 #else
 		printError("Support for SVF Jtag was not enabled at compile time");
-		delete(jtag);
 		return EXIT_FAILURE;
 #endif
 	}
@@ -498,90 +493,83 @@ int main(int argc, char **argv)
 	 */
 	if (fpga_list.find(idcode) == fpga_list.end()) {
 		std::cerr << "Error: device " << std::hex << idcode << " not supported" << std::endl;
-		delete(jtag);
 		return EXIT_FAILURE;
 	}
 
 	std::string fab = fpga_list[idcode].manufacturer;
 
 
-	Device *fpga;
+	std::unique_ptr<Device> fpga;
 	try {
 		if (fab == "xilinx") {
 #ifdef ENABLE_XILINX_SUPPORT
-			fpga = new Xilinx(jtag, args.bit_file, args.secondary_bit_file,
+			fpga = std::make_unique<Xilinx>(jtag.get(), args.bit_file,
+				args.secondary_bit_file,
 				args.file_type, args.prg_type, args.fpga_part, args.spi_flash_type, args.bridge_path,
 				args.target_flash, args.verify, args.verbose, args.skip_load_bridge, args.skip_reset,
 				args.read_dna, args.read_xadc);
 #else
 			printError("Support for Xilinx FPGAs was not enabled at compile time");
-			delete(jtag);
 			return EXIT_FAILURE;
 #endif
 		} else if (fab == "altera") {
 #ifdef ENABLE_ALTERA_SUPPORT
-			fpga = new Altera(jtag, args.bit_file, args.file_type,
+			fpga = std::make_unique<Altera>(jtag.get(), args.bit_file, args.file_type,
 				args.prg_type, args.fpga_part, args.bridge_path, args.verify,
 				args.verbose, args.flash_sector, args.skip_load_bridge, args.skip_reset);
 #else
 			printError("Support for Altera FPGAs was not enabled at compile time");
-			delete(jtag);
 			return EXIT_FAILURE;
 #endif
 		} else if (fab == "anlogic") {
 #ifdef ENABLE_ANLOGIC_SUPPORT
-			fpga = new Anlogic(jtag, args.bit_file, args.file_type,
+			fpga = std::make_unique<Anlogic>(jtag.get(), args.bit_file, args.file_type,
 				args.prg_type, args.verify, args.verbose);
 #else
 			printError("Support for Anlogic FPGAs was not enabled at compile time");
-			delete(jtag);
 			return EXIT_FAILURE;
 #endif
 		} else if (fab == "efinix") {
 #ifdef ENABLE_EFINIX_SUPPORT
-			fpga = new Efinix(jtag, args.bit_file, args.file_type,
+			fpga = std::make_unique<Efinix>(jtag.get(), args.bit_file, args.file_type,
 				args.prg_type, args.board, args.fpga_part, args.bridge_path,
 				args.verify, args.verbose);
 #else
 			printError("Support for Efinix FPGAs was not enabled at compile time");
-			delete(jtag);
 			return EXIT_FAILURE;
 #endif
 		} else if (fab == "Gowin") {
 #ifdef ENABLE_GOWIN_SUPPORT
-			fpga = new Gowin(jtag, args.bit_file, args.file_type, args.mcufw,
-				args.prg_type, args.external_flash, args.verify, args.verbose, args.user_flash);
+			fpga = std::make_unique<Gowin>(jtag.get(), args.bit_file, args.file_type,
+				args.mcufw, args.prg_type, args.external_flash, args.verify,
+				args.verbose, args.user_flash);
 #else
 			printError("Support for Gowin FPGAs was not enabled at compile time");
-			delete(jtag);
 			return EXIT_FAILURE;
 #endif
 		} else if (fab == "lattice") {
 #ifdef ENABLE_LATTICE_SUPPORT
-			fpga = new Lattice(jtag, args.bit_file, args.file_type,
-				args.prg_type, args.flash_sector, args.verify, args.verbose, args.skip_load_bridge, args.skip_reset);
+			fpga = std::make_unique<Lattice>(jtag.get(), args.bit_file, args.file_type,
+				args.prg_type, args.flash_sector, args.verify, args.verbose,
+				args.skip_load_bridge, args.skip_reset);
 #else
 			printError("Support for Lattice FPGAs was not enabled at compile time");
-			delete(jtag);
 			return EXIT_FAILURE;
 #endif
 		} else if (fab == "colognechip") {
 #ifdef ENABLE_COLOGNECHIP_SUPPORT
-			fpga = new CologneChip(jtag, args.bit_file, args.file_type,
+			fpga = std::make_unique<CologneChip>(jtag.get(), args.bit_file, args.file_type,
 				args.prg_type, args.board, args.cable, args.verify, args.verbose);
 #else
 			printError("Support for Gowin FPGAs was not enabled at compile time");
-			delete(jtag);
 			return EXIT_FAILURE;
 #endif
 		} else {
 			printError("Error: manufacturer " + fab + " not supported");
-			delete(jtag);
 			return EXIT_FAILURE;
 		}
 	} catch (std::exception &e) {
 		printError("Error: Failed to claim FPGA device: " + std::string(e.what()));
-		delete(jtag);
 		return EXIT_FAILURE;
 	}
 
@@ -593,8 +581,6 @@ int main(int argc, char **argv)
 			fpga->program(args.offset, args.unprotect_flash);
 		} catch (std::exception &e) {
 			printError("Error: Failed to program FPGA: " + std::string(e.what()));
-			delete(fpga);
-			delete(jtag);
 			return EXIT_FAILURE;
 		}
 	}
@@ -635,8 +621,6 @@ int main(int argc, char **argv)
 		}
 
 		if (!ret) {
-			delete(fpga);
-			delete(jtag);
 			return EXIT_FAILURE;
 		}
 	}
@@ -656,9 +640,6 @@ int main(int argc, char **argv)
 
 	if (args.reset)
 		fpga->reset();
-
-	delete(fpga);
-	delete(jtag);
 }
 
 #ifdef ENABLE_XVC_SERVER
