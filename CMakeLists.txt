@@ -105,6 +105,18 @@ set(USE_LIBUSB    OFF)
 set(USE_LIBUSB_LL OFF)
 set(OPENFPGALOADER_COMPILE_DEFINITIONS)
 
+macro(openfpgaloader_add_optional_sources option)
+	if (${option})
+		list(APPEND OPENFPGALOADER_SOURCE ${ARGN})
+	endif()
+endmacro()
+
+macro(openfpgaloader_add_optional_headers option)
+	if (${option})
+		list(APPEND OPENFPGALOADER_HEADERS ${ARGN})
+	endif()
+endmacro()
+
 # USB BlasterII and Xilinx Platform Cable USB require the FX2 driver
 if (ENABLE_XILINX_PLATFORM_CABLE_USB OR ENABLE_USB_BLASTERII)
 	set(USE_FX2_LL ON)
@@ -516,94 +528,67 @@ endif(ENABLE_LATTICE_SUPPORT)
 # Cables select
 
 # DFU
-if (ENABLE_DFU)
-list(APPEND OPENFPGALOADER_SOURCE
+openfpgaloader_add_optional_sources(ENABLE_DFU
 	src/dfu.cpp
 	src/dfuFileParser.cpp
 )
-
-list(APPEND OPENFPGALOADER_HEADERS
+openfpgaloader_add_optional_headers(ENABLE_DFU
 	src/dfu.hpp
 	src/dfuFileParser.hpp
 )
-endif(ENABLE_DFU)
 
 # Anlogic Cable
-if (ENABLE_ANLOGIC_CABLE)
-list(APPEND OPENFPGALOADER_SOURCE  src/anlogicCable.cpp)
-list(APPEND OPENFPGALOADER_HEADERS src/anlogicCable.hpp)
-endif()
+openfpgaloader_add_optional_sources(ENABLE_ANLOGIC_CABLE src/anlogicCable.cpp)
+openfpgaloader_add_optional_headers(ENABLE_ANLOGIC_CABLE src/anlogicCable.hpp)
 
 # CH347
-if (ENABLE_CH347)
-list(APPEND OPENFPGALOADER_SOURCE  src/ch347jtag.cpp)
-list(APPEND OPENFPGALOADER_HEADERS src/ch347jtag.hpp)
-endif()
+openfpgaloader_add_optional_sources(ENABLE_CH347 src/ch347jtag.cpp)
+openfpgaloader_add_optional_headers(ENABLE_CH347 src/ch347jtag.hpp)
 
 # dirtyJtag
-if (ENABLE_DIRTYJTAG)
-list(APPEND OPENFPGALOADER_SOURCE  src/dirtyJtag.cpp)
-list(APPEND OPENFPGALOADER_HEADERS src/dirtyJtag.hpp)
-endif()
+openfpgaloader_add_optional_sources(ENABLE_DIRTYJTAG src/dirtyJtag.cpp)
+openfpgaloader_add_optional_headers(ENABLE_DIRTYJTAG src/dirtyJtag.hpp)
 
 # ESP32S3
-if (ENABLE_ESP_USB)
-list(APPEND OPENFPGALOADER_SOURCE  src/esp_usb_jtag.cpp)
-list(APPEND OPENFPGALOADER_HEADERS src/esp_usb_jtag.hpp)
-endif()
+openfpgaloader_add_optional_sources(ENABLE_ESP_USB src/esp_usb_jtag.cpp)
+openfpgaloader_add_optional_headers(ENABLE_ESP_USB src/esp_usb_jtag.hpp)
 
 # Gowin GWU2X JTAG interface
-if(ENABLE_GOWIN_GWU2X)
-list(APPEND OPENFPGALOADER_SOURCE  src/gwu2x_jtag.cpp)
-list(APPEND OPENFPGALOADER_HEADERS src/gwu2x_jtag.hpp)
-endif()
+openfpgaloader_add_optional_sources(ENABLE_GOWIN_GWU2X src/gwu2x_jtag.cpp)
+openfpgaloader_add_optional_headers(ENABLE_GOWIN_GWU2X src/gwu2x_jtag.hpp)
 
 # Jetson Nano (libGPIO based)
-if (ENABLE_JETSONNANOGPIO)
-list(APPEND OPENFPGALOADER_SOURCE  src/jetsonNanoJtagBitbang.cpp)
-list(APPEND OPENFPGALOADER_HEADERS src/jetsonNanoJtagBitbang.hpp)
-endif()
+openfpgaloader_add_optional_sources(ENABLE_JETSONNANOGPIO src/jetsonNanoJtagBitbang.cpp)
+openfpgaloader_add_optional_headers(ENABLE_JETSONNANOGPIO src/jetsonNanoJtagBitbang.hpp)
 
 # JLINK
-if (ENABLE_JLINK)
-list(APPEND OPENFPGALOADER_SOURCE  src/jlink.cpp)
-list(APPEND OPENFPGALOADER_HEADERS src/jlink.hpp)
-endif()
+openfpgaloader_add_optional_sources(ENABLE_JLINK src/jlink.cpp)
+openfpgaloader_add_optional_headers(ENABLE_JLINK src/jlink.hpp)
 
 # libGPIOD support
-if (ENABLE_LIBGPIOD)
-list(APPEND OPENFPGALOADER_SOURCE  src/libgpiodJtagBitbang.cpp)
-list(APPEND OPENFPGALOADER_HEADERS src/libgpiodJtagBitbang.hpp)
-endif()
+openfpgaloader_add_optional_sources(ENABLE_LIBGPIOD src/libgpiodJtagBitbang.cpp)
+openfpgaloader_add_optional_headers(ENABLE_LIBGPIOD src/libgpiodJtagBitbang.hpp)
 
 # RemoteBitbang
-if (ENABLE_REMOTEBITBANG)
-list (APPEND OPENFPGALOADER_SOURCE  src/remoteBitbang_client.cpp)
-list (APPEND OPENFPGALOADER_HEADERS src/remoteBitbang_client.hpp)
-endif()
+openfpgaloader_add_optional_sources(ENABLE_REMOTEBITBANG src/remoteBitbang_client.cpp)
+openfpgaloader_add_optional_headers(ENABLE_REMOTEBITBANG src/remoteBitbang_client.hpp)
 
 # SVF JTAG file type support
+openfpgaloader_add_optional_sources(ENABLE_SVF_JTAG src/svf_jtag.cpp)
+openfpgaloader_add_optional_headers(ENABLE_SVF_JTAG src/svf_jtag.hpp)
 if (ENABLE_SVF_JTAG)
-list (APPEND OPENFPGALOADER_SOURCE  src/svf_jtag.cpp)
-list (APPEND OPENFPGALOADER_HEADERS src/svf_jtag.hpp)
-list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_SVF_JTAG)
+	list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_SVF_JTAG)
 endif()
 
 # Xilinx Platform Cable USB
-if (ENABLE_XILINX_PLATFORM_CABLE_USB)
-	list(APPEND OPENFPGALOADER_SOURCE  src/xilinxPlatformCableUSB.cpp)
-	list(APPEND OPENFPGALOADER_HEADERS src/xilinxPlatformCableUSB.hpp)
-endif()
+openfpgaloader_add_optional_sources(ENABLE_XILINX_PLATFORM_CABLE_USB src/xilinxPlatformCableUSB.cpp)
+openfpgaloader_add_optional_headers(ENABLE_XILINX_PLATFORM_CABLE_USB src/xilinxPlatformCableUSB.hpp)
 
 # Xilinx Virtual Cable
-if (ENABLE_XILINX_VIRTUAL_CABLE_CLIENT)
-list (APPEND OPENFPGALOADER_SOURCE  src/xvc_client.cpp)
-list (APPEND OPENFPGALOADER_HEADERS src/xvc_client.hpp)
-endif()
-if (ENABLE_XILINX_VIRTUAL_CABLE_SERVER)
-list (APPEND OPENFPGALOADER_SOURCE  src/xvc_server.cpp)
-list (APPEND OPENFPGALOADER_HEADERS src/xvc_server.hpp)
-endif()
+openfpgaloader_add_optional_sources(ENABLE_XILINX_VIRTUAL_CABLE_CLIENT src/xvc_client.cpp)
+openfpgaloader_add_optional_headers(ENABLE_XILINX_VIRTUAL_CABLE_CLIENT src/xvc_client.hpp)
+openfpgaloader_add_optional_sources(ENABLE_XILINX_VIRTUAL_CABLE_SERVER src/xvc_server.cpp)
+openfpgaloader_add_optional_headers(ENABLE_XILINX_VIRTUAL_CABLE_SERVER src/xvc_server.hpp)
 
 # Altera USB Blaster (I & II).
 if (ENABLE_USB_BLASTERI OR ENABLE_USB_BLASTERII)
@@ -624,15 +609,11 @@ if (ENABLE_USB_BLASTERI OR ENABLE_USB_BLASTERII)
 	list(APPEND OPENFPGALOADER_HEADERS src/usbBlaster.hpp)
 endif(ENABLE_USB_BLASTERI OR ENABLE_USB_BLASTERII)
 
-if (USE_LIBUSB_LL)
-list(APPEND OPENFPGALOADER_SOURCE  src/libusb_ll.cpp)
-list(APPEND OPENFPGALOADER_HEADERS src/libusb_ll.hpp)
-endif()
+openfpgaloader_add_optional_sources(USE_LIBUSB_LL src/libusb_ll.cpp)
+openfpgaloader_add_optional_headers(USE_LIBUSB_LL src/libusb_ll.hpp)
 
-if (USE_FX2_LL)
-list(APPEND OPENFPGALOADER_SOURCE  src/fx2_ll.cpp src/ihexParser.cpp)
-list(APPEND OPENFPGALOADER_HEADERS src/fx2_ll.hpp src/ihexParser.hpp)
-endif()
+openfpgaloader_add_optional_sources(USE_FX2_LL src/fx2_ll.cpp src/ihexParser.cpp)
+openfpgaloader_add_optional_headers(USE_FX2_LL src/fx2_ll.hpp src/ihexParser.hpp)
 
 add_executable(openFPGALoader
 	${OPENFPGALOADER_SOURCE}
