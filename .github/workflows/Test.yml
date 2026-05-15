@@ -25,6 +25,10 @@ jobs:
         run: |
           pip install -r doc/requirements.txt
 
+      - name: '🐍 Check docs helpers'
+        run: |
+          scripts/check-docs-python.sh
+
       - name: '📓 Build docs'
         run: |
           scripts/check-docs.sh --strict
@@ -47,6 +51,10 @@ jobs:
       - name: '📦 Install dependencies'
         run: |
           pip install -r doc/requirements.txt
+
+      - name: '🐍 Check docs helpers'
+        run: |
+          scripts/check-docs-python.sh
 
       - name: '📓 Build docs'
         run: |

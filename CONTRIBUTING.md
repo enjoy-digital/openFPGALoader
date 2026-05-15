@@ -51,11 +51,13 @@ Install the documentation dependencies and build the HTML docs locally:
 
 ```bash
 python3 -m pip install -r doc/requirements.txt
+scripts/check-docs-python.sh
 scripts/check-docs.sh
 ```
 
 For pull-request style validation, run the strict offline check:
 
 ```bash
+scripts/check-docs-python.sh
 scripts/check-docs.sh --strict
 ```
