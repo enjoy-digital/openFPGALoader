@@ -36,8 +36,9 @@
 
 RemoteBitbang_client::RemoteBitbang_client(const std::string &ip_addr, int port,
 		int8_t verbose):
-	_xfer_buf(NULL), _num_bytes(0), _last_tms(TMS_BIT),
-	_last_tdi(0), _buffer_size(2048), _sock(0), _port(port)
+	_xfer_buf(2048), _num_bytes(0), _last_tms(TMS_BIT),
+	_last_tdi(0), _buffer_size(static_cast<uint32_t>(_xfer_buf.size())),
+	_sock(0), _port(port)
 {
 	(void) verbose;
 	/* create client to server */
@@ -47,11 +48,6 @@ RemoteBitbang_client::RemoteBitbang_client(const std::string &ip_addr, int port,
 	/* set led to low */
 	if (xfer_pkt('b', NULL) < 0)
 		throw std::runtime_error("can't set led low");
-
-	_xfer_buf = reinterpret_cast<uint8_t *>(malloc(sizeof(uint8_t)
-				* _buffer_size));
-	if (!_xfer_buf)
-		throw std::runtime_error("can't allocate internal buffer");
 }
 
 RemoteBitbang_client::~RemoteBitbang_client()
@@ -68,9 +64,6 @@ RemoteBitbang_client::~RemoteBitbang_client()
 	if (xfer_pkt('Q', NULL) < 0)
 		printf("can't send close request");
 
-	// cleanup
-	if (_xfer_buf)
-		free(_xfer_buf);
 	// close socket
 	close(_sock);
 }
@@ -223,7 +216,7 @@ bool RemoteBitbang_client::ll_write(uint8_t *tdo)
 
 	ssize_t len;
 	// write current buffer
-	if ((len = write(_sock, _xfer_buf, _num_bytes)) == -1) {
+	if ((len = write(_sock, _xfer_buf.data(), _num_bytes)) == -1) {
 		printError("Send error error: " + std::to_string(len));
 		return false;
 	}

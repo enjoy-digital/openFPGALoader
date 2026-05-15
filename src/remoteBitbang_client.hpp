@@ -7,6 +7,7 @@
 #define SRC_REMOTEBITBANG_CLIENT_HPP_
 
 #include <string>
+#include <vector>
 
 #include "jtagInterface.hpp"
 
@@ -101,7 +102,7 @@ class RemoteBitbang_client: public JtagInterface {
 		 */
 		bool ll_write(uint8_t *tdo);
 
-		uint8_t *_xfer_buf;    /*!< tx buffer */
+		std::vector<uint8_t> _xfer_buf; /*!< tx buffer */
 		uint32_t _num_bytes;   /*!< number of bits stored */
 		uint32_t _last_tms;    /*!< last known TMS state */
 		uint32_t _last_tdi;    /*!< last known TDI state */
