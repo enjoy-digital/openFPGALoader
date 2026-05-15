@@ -27,7 +27,7 @@ jobs:
 
       - name: '📓 Build docs'
         run: |
-          sphinx-build -b html doc doc/_build/html
+          scripts/check-docs.sh
 
 
   doc:
@@ -50,7 +50,7 @@ jobs:
 
       - name: '📓 Build docs'
         run: |
-          sphinx-build -b html doc doc/_build/html
+          scripts/check-docs.sh
 
       - name: '⬆️ Deploy to gh-pages'
         uses: peaceiris/actions-gh-pages@v4

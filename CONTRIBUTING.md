@@ -42,5 +42,5 @@ Install the documentation dependencies and build the HTML docs locally:
 
 ```bash
 python3 -m pip install -r doc/requirements.txt
-sphinx-build -b html doc doc/_build/html
+scripts/check-docs.sh
 ```
