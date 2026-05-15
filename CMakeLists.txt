@@ -621,19 +621,6 @@ if (ENABLE_USB_BLASTERI OR ENABLE_USB_BLASTERII)
 	list(APPEND OPENFPGALOADER_HEADERS src/usbBlaster.hpp)
 endif(ENABLE_USB_BLASTERI OR ENABLE_USB_BLASTERII)
 
-link_directories(
-	${LIBUSB_LIBRARY_DIRS}
-	${LIBFTDI_LIBRARY_DIRS}
-)
-
-if (ENABLE_LIBGPIOD)
-	link_directories(${LIBGPIOD_LIBRARY_DIRS})
-endif()
-
-if (ENABLE_CMSISDAP AND HIDAPI_FOUND)
-	link_directories(${HIDAPI_LIBRARY_DIRS})
-endif()
-
 if (USE_LIBUSB_LL)
 list(APPEND OPENFPGALOADER_SOURCE  src/libusb_ll.cpp)
 list(APPEND OPENFPGALOADER_HEADERS src/libusb_ll.hpp)
@@ -656,19 +643,24 @@ target_compile_definitions(openFPGALoader PRIVATE
 	VIVADO_DIR="${VIVADO_PATH}"
 )
 
-include_directories(
+target_include_directories(openFPGALoader PRIVATE
 	${LIBUSB_INCLUDE_DIRS}
 	${LIBFTDI_INCLUDE_DIRS}
 )
 
-target_link_libraries(openFPGALoader
+target_link_directories(openFPGALoader PRIVATE
+	${LIBUSB_LIBRARY_DIRS}
+	${LIBFTDI_LIBRARY_DIRS}
+)
+
+target_link_libraries(openFPGALoader PRIVATE
 	${LIBUSB_LIBRARIES}
 	${LIBFTDI_LIBRARIES}
 )
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	# winsock provides ntohs
-	target_link_libraries(openFPGALoader ws2_32)
+	target_link_libraries(openFPGALoader PRIVATE ws2_32)
 
 	target_sources(openFPGALoader PRIVATE src/pathHelper.cpp)
 	list(APPEND OPENFPGALOADER_HEADERS src/pathHelper.hpp)
@@ -680,8 +672,8 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif()
 
 if (ENABLE_UDEV)
-	include_directories(${LIBUDEV_INCLUDE_DIRS})
-	target_link_libraries(openFPGALoader ${LIBUDEV_LIBRARIES})
+	target_include_directories(openFPGALoader PRIVATE ${LIBUDEV_INCLUDE_DIRS})
+	target_link_libraries(openFPGALoader PRIVATE ${LIBUDEV_LIBRARIES})
 endif()
 
 if (BUILD_STATIC)
@@ -706,8 +698,9 @@ endif()
 
 if (ENABLE_CMSISDAP)
 	if (HIDAPI_FOUND)
-		include_directories(${HIDAPI_INCLUDE_DIRS})
-		target_link_libraries(openFPGALoader ${HIDAPI_LIBRARIES})
+		target_include_directories(openFPGALoader PRIVATE ${HIDAPI_INCLUDE_DIRS})
+		target_link_directories(openFPGALoader PRIVATE ${HIDAPI_LIBRARY_DIRS})
+		target_link_libraries(openFPGALoader PRIVATE ${HIDAPI_LIBRARIES})
 		add_definitions(-DENABLE_CMSISDAP=1)
 		target_sources(openFPGALoader PRIVATE src/cmsisDAP.cpp)
 		list (APPEND OPENFPGALOADER_HEADERS src/cmsisDAP.hpp)
@@ -765,8 +758,9 @@ endif()
 
 # libGPIOD support
 if (ENABLE_LIBGPIOD)
-	include_directories(${LIBGPIOD_INCLUDE_DIRS})
-	target_link_libraries(openFPGALoader ${LIBGPIOD_LIBRARIES})
+	target_include_directories(openFPGALoader PRIVATE ${LIBGPIOD_INCLUDE_DIRS})
+	target_link_directories(openFPGALoader PRIVATE ${LIBGPIOD_LIBRARY_DIRS})
+	target_link_libraries(openFPGALoader PRIVATE ${LIBGPIOD_LIBRARIES})
 	add_definitions(-DENABLE_LIBGPIOD=1)
 	if (LIBGPIOD_VERSION VERSION_GREATER_EQUAL 2)
 		message("libgpiod v2 support enabled")
@@ -812,8 +806,8 @@ if (ENABLE_USB_SCAN)
 endif()
 
 if (ZLIB_FOUND)
-	include_directories(${ZLIB_INCLUDE_DIRS})
-	target_link_libraries(openFPGALoader ${ZLIB_LIBRARIES})
+	target_include_directories(openFPGALoader PRIVATE ${ZLIB_INCLUDE_DIRS})
+	target_link_libraries(openFPGALoader PRIVATE ${ZLIB_LIBRARIES})
 	add_definitions(-DHAS_ZLIB=1)
 else()
 	message("zlib library not found: can't flash intel/altera devices")
@@ -822,7 +816,7 @@ endif()
 
 if (LINK_CMAKE_THREADS)
 	find_package(Threads REQUIRED)
-	target_link_libraries(openFPGALoader Threads::Threads)
+	target_link_libraries(openFPGALoader PRIVATE Threads::Threads)
 endif()
 
 if (USE_LIBFTDI)
