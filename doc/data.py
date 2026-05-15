@@ -1,7 +1,7 @@
-from typing import List, Union
+from typing import Dict, List, Optional, Union
 from pathlib import Path
 from dataclasses import dataclass
-from yaml import load as yaml_load, Loader as yaml_loader, dump as yaml_dump
+from yaml import safe_load
 from tabulate import tabulate
 
 
@@ -11,23 +11,23 @@ ROOT = Path(__file__).resolve().parent
 @dataclass
 class Board:
     ID: str
-    Description: str = None
-    URL: str = None
-    FPGA: str = None
-    Memory: str = None
-    Flash: str = None
-    Constraints: str = None
-    SPIFlash: str = None
+    Description: Optional[str] = None
+    URL: Optional[str] = None
+    FPGA: Optional[str] = None
+    Memory: Optional[str] = None
+    Flash: Optional[str] = None
+    Constraints: Optional[Union[str, List[str]]] = None
+    SPIFlash: Optional[str] = None
 
 
-def ReadBoardDataFromYAML():
+def ReadBoardDataFromYAML() -> List[Board]:
     with (ROOT / 'boards.yml').open('r', encoding='utf-8') as fptr:
-        data = [Board(**item) for item in yaml_load(fptr, yaml_loader)]
+        data = [Board(**item) for item in safe_load(fptr)]
     return data
 
 
-def BoardDataToTable(data, tablefmt: str = "rst"):
-    def processConstraints(constraints):
+def BoardDataToTable(data: List[Board], tablefmt: str = "rst") -> str:
+    def processConstraints(constraints: Optional[Union[str, List[str]]]) -> Optional[str]:
         if constraints is None:
             return None
         if isinstance(constraints, str):
@@ -54,20 +54,20 @@ def BoardDataToTable(data, tablefmt: str = "rst"):
 class FPGA:
     Model: Union[str, List[str]]
     Description: str
-    URL: str = None
-    Memory: str = None
-    Flash: str = None
+    URL: Optional[str] = None
+    Memory: Optional[str] = None
+    Flash: Optional[str] = None
 
 
-def ReadFPGADataFromYAML():
+def ReadFPGADataFromYAML() -> Dict[str, List[FPGA]]:
     with (ROOT / 'FPGAs.yml').open('r', encoding='utf-8') as fptr:
-        data = yaml_load(fptr, yaml_loader)
+        data = safe_load(fptr)
         for vendor, content in data.items():
             data[vendor] = [FPGA(**item) for item in content]
     return data
 
 
-def FPGADataToTable(data, tablefmt: str = "rst"):
+def FPGADataToTable(data: Dict[str, List[FPGA]], tablefmt: str = "rst") -> str:
     return tabulate(
         [
             [
@@ -87,20 +87,20 @@ def FPGADataToTable(data, tablefmt: str = "rst"):
 class Cable:
     Name: str
     Description: str
-    URL: str = None
-    Note: str = None
+    URL: Optional[str] = None
+    Note: Optional[str] = None
 
 
-def ReadCableDataFromYAML():
+def ReadCableDataFromYAML() -> Dict[str, List[Cable]]:
     with (ROOT / 'cable.yml').open('r', encoding='utf-8') as fptr:
-        data = yaml_load(fptr, yaml_loader)
+        data = safe_load(fptr)
         for keyword, content in data.items():
             data[keyword] = [Cable(**item) for item in content]
     return data
 
 
-def CableDataToTable(data, tablefmt: str = "rst"):
-    def processURL(name, url):
+def CableDataToTable(data: Dict[str, List[Cable]], tablefmt: str = "rst") -> str:
+    def processURL(name: str, url: Optional[str]) -> str:
         if url is None:
             return f"{name}"
         else:
