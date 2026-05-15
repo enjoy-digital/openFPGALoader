@@ -21,6 +21,8 @@ fi
 
 if [ "$strict" = true ]; then
 	OFL_DOCS_OFFLINE=1 sphinx-build -W -b html doc doc/_build/html
+	OFL_DOCS_OFFLINE=1 scripts/check-docs-generated.py
 else
 	sphinx-build -b html doc doc/_build/html
+	scripts/check-docs-generated.py
 fi
