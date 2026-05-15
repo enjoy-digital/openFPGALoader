@@ -103,6 +103,7 @@ set(USE_FX2_LL    OFF)
 set(USE_LIBFTDI   OFF)
 set(USE_LIBUSB    OFF)
 set(USE_LIBUSB_LL OFF)
+set(OPENFPGALOADER_COMPILE_DEFINITIONS)
 
 # USB BlasterII and Xilinx Platform Cable USB require the FX2 driver
 if (ENABLE_XILINX_PLATFORM_CABLE_USB OR ENABLE_USB_BLASTERII)
@@ -257,7 +258,7 @@ if (USE_PKGCONFIG)
 			# try zlib-ng
 			pkg_check_modules(ZLIB zlib-ng)
 			if (ZLIB_FOUND)
-				add_definitions(-DHAS_ZLIBNG)
+				list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS HAS_ZLIBNG)
 			else()
 				message(FATAL_ERROR "Could find ZLIB")
 			endif()
@@ -267,7 +268,7 @@ if (USE_PKGCONFIG)
 	if (ENABLE_UDEV)
 		pkg_check_modules(LIBUDEV libudev)
 		if (LIBUDEV_FOUND)
-			add_definitions(-DUSE_UDEV)
+			list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS USE_UDEV)
 		else()
 			message("libudev not found, disabling udev support and -D parameter")
 			set(ENABLE_UDEV OFF)
@@ -350,7 +351,7 @@ list(APPEND OPENFPGALOADER_HEADERS
 
 # FTDI Based cables
 if (${USE_LIBFTDI})
-	add_definitions(-DUSE_LIBFTDI)
+	list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS USE_LIBFTDI)
 
 	list(APPEND OPENFPGALOADER_SOURCE
 		src/ch552_jtag.cpp
@@ -379,7 +380,7 @@ if (${USE_LIBFTDI})
 			src/colognechip.hpp
 			src/colognechipCfgParser.hpp
 		)
-		add_definitions(-DENABLE_COLOGNECHIP_SUPPORT=1)
+		list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_COLOGNECHIP_SUPPORT=1)
 		message("CologneChip support enabled")
 	else()
 		message("CologneChip support disabled")
@@ -396,7 +397,7 @@ if (${USE_LIBFTDI})
 			src/efinix.hpp
 			src/efinixHexParser.hpp
 		)
-		add_definitions(-DENABLE_EFINIX_SUPPORT=1)
+		list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_EFINIX_SUPPORT=1)
 		message("Efinix support enabled")
 	else()
 		message("Efinix support disabled")
@@ -406,7 +407,7 @@ if (${USE_LIBFTDI})
 	if (ENABLE_ICE40_SUPPORT)
 		list(APPEND OPENFPGALOADER_SOURCE  src/ice40.cpp)
 		list(APPEND OPENFPGALOADER_HEADERS src/ice40.hpp)
-		add_definitions(-DENABLE_ICE40_SUPPORT=1)
+		list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_ICE40_SUPPORT=1)
 		message("ICE40 support enabled")
 	else()
 		message("ICE40 support disabled")
@@ -416,7 +417,7 @@ if (${USE_LIBFTDI})
 	if (ENABLE_LATTICESSPI_SUPPORT)
 		list(APPEND OPENFPGALOADER_SOURCE  src/latticeSSPI.cpp)
 		list(APPEND OPENFPGALOADER_HEADERS src/latticeSSPI.hpp)
-		add_definitions(-DENABLE_LATTICESSPI_SUPPORT=1)
+		list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_LATTICESSPI_SUPPORT=1)
 		message("Lattice SSPI support enabled")
 	else()
 		message("Lattice SSPI support disabled")
@@ -434,7 +435,7 @@ if (ENABLE_ALTERA_SUPPORT)
 		src/altera.hpp
 		src/pofParser.hpp
 	)
-	add_definitions(-DENABLE_ALTERA_SUPPORT=1)
+	list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_ALTERA_SUPPORT=1)
 	message("Altera support enabled")
 else()
 	message("Altera support disabled")
@@ -451,7 +452,7 @@ if (ENABLE_ANLOGIC_SUPPORT)
 		src/anlogic.hpp
 		src/anlogicBitParser.hpp
 	)
-	add_definitions(-DENABLE_ANLOGIC_SUPPORT=1)
+	list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_ANLOGIC_SUPPORT=1)
 	message("Anlogic support enabled")
 else()
 	message("Anlogic support disabled")
@@ -468,7 +469,7 @@ if (ENABLE_GOWIN_SUPPORT)
 		src/gowin.hpp
 		src/fsparser.hpp
 	)
-	add_definitions(-DENABLE_GOWIN_SUPPORT=1)
+	list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_GOWIN_SUPPORT=1)
 	message("Gowin support enabled")
 else()
 	message("Gowin support disabled")
@@ -487,7 +488,7 @@ if (ENABLE_XILINX_SUPPORT)
 		src/xilinx.hpp
 		src/xilinxMapParser.hpp
 	)
-	add_definitions(-DENABLE_XILINX_SUPPORT=1)
+	list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_XILINX_SUPPORT=1)
 	message("Xilinx support enabled")
 else()
 	message("Xilinx support disabled")
@@ -506,7 +507,7 @@ if (ENABLE_LATTICE_SUPPORT)
 		src/feaparser.hpp
 		src/latticeBitParser.hpp
 	)
-	add_definitions(-DENABLE_LATTICE_SUPPORT=1)
+	list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_LATTICE_SUPPORT=1)
 	message("Lattice support enabled")
 else()
 	message("Lattice support disabled")
@@ -585,7 +586,7 @@ endif()
 if (ENABLE_SVF_JTAG)
 list (APPEND OPENFPGALOADER_SOURCE  src/svf_jtag.cpp)
 list (APPEND OPENFPGALOADER_HEADERS src/svf_jtag.hpp)
-add_definitions(-DENABLE_SVF_JTAG)
+list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_SVF_JTAG)
 endif()
 
 # Xilinx Platform Cable USB
@@ -606,15 +607,17 @@ endif()
 
 # Altera USB Blaster (I & II).
 if (ENABLE_USB_BLASTERI OR ENABLE_USB_BLASTERII)
-	add_definitions(-DENABLE_USBBLASTER)
+	list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_USBBLASTER)
 
 	if (ENABLE_USB_BLASTERI)
-		add_definitions(-DENABLE_USB_BLASTERI)
+		list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS ENABLE_USB_BLASTERI)
 	endif()
 
 	if (ENABLE_USB_BLASTERII)
-		add_definitions(-DBLASTERII_DIR=\"${BLASTERII_PATH}\")
-		add_definitions(-DENABLE_USB_BLASTERII)
+		list(APPEND OPENFPGALOADER_COMPILE_DEFINITIONS
+			BLASTERII_DIR="${BLASTERII_PATH}"
+			ENABLE_USB_BLASTERII
+		)
 	endif (ENABLE_USB_BLASTERII)
 
 	list(APPEND OPENFPGALOADER_SOURCE  src/usbBlaster.cpp)
@@ -641,6 +644,7 @@ target_compile_definitions(openFPGALoader PRIVATE
 	DATA_DIR="${CMAKE_INSTALL_FULL_DATAROOTDIR}"
 	ISE_DIR="${ISE_PATH}"
 	VIVADO_DIR="${VIVADO_PATH}"
+	${OPENFPGALOADER_COMPILE_DEFINITIONS}
 )
 
 target_include_directories(openFPGALoader PRIVATE
@@ -668,7 +672,7 @@ endif()
 
 # libusb_attach_kernel_driver is only available on Linux.
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	add_definitions(-DATTACH_KERNEL)
+	target_compile_definitions(openFPGALoader PRIVATE ATTACH_KERNEL)
 endif()
 
 if (ENABLE_UDEV)
@@ -682,7 +686,7 @@ endif()
 
 # Anlogic Cable
 if (ENABLE_ANLOGIC_CABLE)
-	add_definitions(-DENABLE_ANLOGIC_CABLE=1)
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_ANLOGIC_CABLE=1)
 	message("Anlogic Cable support enabled")
 else()
 	message("Anlogic Cable support disabled")
@@ -690,7 +694,7 @@ endif()
 
 # CH347
 if (ENABLE_CH347)
-	add_definitions(-DENABLE_CH347=1)
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_CH347=1)
 	message("CH347 support enabled")
 else()
 	message("CH347 support disabled")
@@ -701,7 +705,7 @@ if (ENABLE_CMSISDAP)
 		target_include_directories(openFPGALoader PRIVATE ${HIDAPI_INCLUDE_DIRS})
 		target_link_directories(openFPGALoader PRIVATE ${HIDAPI_LIBRARY_DIRS})
 		target_link_libraries(openFPGALoader PRIVATE ${HIDAPI_LIBRARIES})
-		add_definitions(-DENABLE_CMSISDAP=1)
+		target_compile_definitions(openFPGALoader PRIVATE ENABLE_CMSISDAP=1)
 		target_sources(openFPGALoader PRIVATE src/cmsisDAP.cpp)
 		list (APPEND OPENFPGALOADER_HEADERS src/cmsisDAP.hpp)
 		message("cmsis_dap support enabled")
@@ -712,7 +716,7 @@ endif(ENABLE_CMSISDAP)
 
 # DFU
 if (ENABLE_DFU)
-	add_definitions(-DENABLE_DFU=1)
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_DFU=1)
 	message("DFU support enabled")
 else()
 	message("DFU support disabled")
@@ -720,7 +724,7 @@ endif()
 
 # dirtyJtag
 if (ENABLE_DIRTYJTAG)
-	add_definitions(-DENABLE_DIRTYJTAG=1)
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_DIRTYJTAG=1)
 	message("dirtyJtag support enabled")
 else()
 	message("dirtyJtag support disabled")
@@ -728,7 +732,7 @@ endif()
 
 # ESP32S3
 if (ENABLE_ESP_USB)
-	add_definitions(-DENABLE_ESP_USB=1)
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_ESP_USB=1)
 	message("ESP32S3 support enabled")
 else()
 	message("ESP32S3 support disabled")
@@ -736,7 +740,7 @@ endif()
 
 # Gowin GWU2X JTAG interface
 if(ENABLE_GOWIN_GWU2X)
-	add_definitions(-DENABLE_GOWIN_GWU2X=1)
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_GOWIN_GWU2X=1)
 	message("Gowin GWU2X support enabled")
 else()
 	message("Gowin GWU2X support disabled")
@@ -744,13 +748,13 @@ endif()
 
 # Jetson Nano (libGPIO based)
 if (ENABLE_JETSONNANOGPIO)
-	add_definitions(-DENABLE_JETSONNANOGPIO=1)
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_JETSONNANOGPIO=1)
 	message("Jetson Nano GPIO support enabled")
 endif(ENABLE_JETSONNANOGPIO)
 
 # JLINK
 if (ENABLE_JLINK)
-	add_definitions(-DENABLE_JLINK=1)
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_JLINK=1)
 	message("JLink support enabled")
 else()
 	message("JLink support disabled")
@@ -761,31 +765,31 @@ if (ENABLE_LIBGPIOD)
 	target_include_directories(openFPGALoader PRIVATE ${LIBGPIOD_INCLUDE_DIRS})
 	target_link_directories(openFPGALoader PRIVATE ${LIBGPIOD_LIBRARY_DIRS})
 	target_link_libraries(openFPGALoader PRIVATE ${LIBGPIOD_LIBRARIES})
-	add_definitions(-DENABLE_LIBGPIOD=1)
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_LIBGPIOD=1)
 	if (LIBGPIOD_VERSION VERSION_GREATER_EQUAL 2)
 		message("libgpiod v2 support enabled")
-		add_definitions(-DGPIOD_APIV2)
+		target_compile_definitions(openFPGALoader PRIVATE GPIOD_APIV2)
 	else()
 		message("libgpiod v1 support enabled")
 	endif()
 endif(ENABLE_LIBGPIOD)
 
 if (ENABLE_REMOTEBITBANG)
-	add_definitions(-DENABLE_REMOTEBITBANG=1)
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_REMOTEBITBANG=1)
 	message("Remote bitbang client support enabled")
 else()
 	message("Remote bitbang client support disabled")
 endif()
 
 if (ENABLE_XILINX_PLATFORM_CABLE_USB)
-	add_definitions(-DENABLE_XILINX_PLATFORM_CABLE_USB=1)
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_XILINX_PLATFORM_CABLE_USB=1)
 	message("Xilinx Platform Cable USB (XPCU) support enabled")
 else()
 	message("Xilinx Platform Cable USB (XPCU) support disabled")
 endif()
 
 if (ENABLE_XILINX_VIRTUAL_CABLE_CLIENT)
-	add_definitions(-DENABLE_XVC_CLIENT=1)
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_XVC_CLIENT=1)
 	set(CMAKE_EXE_LINKER_FLAGS "-pthread ${CMAKE_EXE_LINKER_FLAGS}")
 	message("Xilinx Virtual Client support enabled")
 else()
@@ -793,7 +797,7 @@ else()
 endif()
 
 if (ENABLE_XILINX_VIRTUAL_CABLE_SERVER)
-	add_definitions(-DENABLE_XVC_SERVER=1)
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_XVC_SERVER=1)
 	set(CMAKE_EXE_LINKER_FLAGS "-pthread ${CMAKE_EXE_LINKER_FLAGS}")
 	message("Xilinx Virtual Server support enabled")
 else()
@@ -802,13 +806,13 @@ endif()
 
 # USB Devices Scan
 if (ENABLE_USB_SCAN)
-	add_definitions("-DENABLE_USB_SCAN=1")
+	target_compile_definitions(openFPGALoader PRIVATE ENABLE_USB_SCAN=1)
 endif()
 
 if (ZLIB_FOUND)
 	target_include_directories(openFPGALoader PRIVATE ${ZLIB_INCLUDE_DIRS})
 	target_link_libraries(openFPGALoader PRIVATE ${ZLIB_LIBRARIES})
-	add_definitions(-DHAS_ZLIB=1)
+	target_compile_definitions(openFPGALoader PRIVATE HAS_ZLIB=1)
 else()
 	message("zlib library not found: can't flash intel/altera devices")
 	message("or reads compressed bitstreams")
@@ -823,7 +827,7 @@ if (USE_LIBFTDI)
 	# libftdi < 1.4 as no usb_addr
 	# libftdi >= 1.5 as purge_buffer obsolete
 	math(EXPR FTDI_VAL "${LIBFTDI_VERSION_MAJOR} * 100 + ${LIBFTDI_VERSION_MINOR}")
-	add_definitions(-DFTDI_VERSION=${FTDI_VAL})
+	target_compile_definitions(openFPGALoader PRIVATE FTDI_VERSION=${FTDI_VAL})
 endif()
 
 install(TARGETS openFPGALoader DESTINATION bin)
