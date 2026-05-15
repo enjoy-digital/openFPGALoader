@@ -9,6 +9,7 @@
 #include <libusb.h>
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -241,7 +242,7 @@ class DFU {
 		int curr_intf;                       /**< device interface to use */
 		int transaction;					 /**< download transaction ID */
 
-		DFUFileParser *_bit;                 /**< dfu file to load */
+		std::unique_ptr<DFUFileParser> _bit; /**< dfu file to load */
 };
 
 #endif  // SRC_DFU_HPP_

@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -51,7 +52,7 @@ DFU::DFU(const std::string &filename, bool bypass_bitstream,
 		_quiet(verbose_lvl < 0), dev_idx(0), _vid(0), _pid(0),
 		_altsetting(altsetting),
 		usb_ctx(NULL), dev_handle(NULL), curr_intf(0), transaction(0),
-		_bit(NULL)
+		_bit(nullptr)
 {
 	struct dfu_status status;
 	int dfu_vid = 0, dfu_pid = 0, ret;
@@ -63,7 +64,7 @@ DFU::DFU(const std::string &filename, bool bypass_bitstream,
 		printInfo("bypassed");
 	} else {
 		try {
-			_bit = new DFUFileParser(filename, _verbose > 0);
+			_bit = std::make_unique<DFUFileParser>(filename, _verbose > 0);
 			printSuccess("DONE");
 		} catch (std::exception &e) {
 			printError("FAIL");
@@ -76,7 +77,6 @@ DFU::DFU(const std::string &filename, bool bypass_bitstream,
 			printSuccess("DONE");
 		} catch (std::exception &e) {
 			printError("FAIL");
-			delete _bit;
 			throw std::runtime_error("Error: Fail to parse file");
 		}
 
@@ -94,7 +94,6 @@ DFU::DFU(const std::string &filename, bool bypass_bitstream,
 	}
 
 	if (libusb_init(&usb_ctx) < 0) {
-		delete _bit;
 		throw std::runtime_error("libusb init failed");
 	}
 
@@ -103,7 +102,6 @@ DFU::DFU(const std::string &filename, bool bypass_bitstream,
 		// search all DFU compatible devices
 		if (searchDFUDevices() != EXIT_SUCCESS) {
 			libusb_exit(usb_ctx);
-			delete _bit;
 			throw std::runtime_error("Devices enumeration failed");
 		}
 	} else {
@@ -119,12 +117,10 @@ DFU::DFU(const std::string &filename, bool bypass_bitstream,
 		/* more than one: only possible if file is not DFU */
 		if (dfu_dev.size() > 1 && !filename.empty()) {
 			libusb_exit(usb_ctx);
-			delete _bit;
 			throw std::runtime_error("Only one device supported");
 		}
 	} else {
 		libusb_exit(usb_ctx);
-		delete _bit;
 		throw std::runtime_error("No DFU compatible device found");
 	}
 
@@ -134,7 +130,6 @@ DFU::DFU(const std::string &filename, bool bypass_bitstream,
 	/* don't try device without vid/pid */
 	if ((_vid == 0 || _pid == 0) && _bit) {
 		libusb_exit(usb_ctx);
-		delete _bit;
 		throw std::runtime_error("Can't open device vid/pid == 0");
 	}
 
@@ -145,7 +140,6 @@ DFU::DFU(const std::string &filename, bool bypass_bitstream,
 	/* open the first */
 	if (open_DFU(0) == EXIT_FAILURE) {
 		libusb_exit(usb_ctx);
-		delete _bit;
 		throw std::runtime_error("Fail to claim device");
 	}
 
@@ -153,7 +147,6 @@ DFU::DFU(const std::string &filename, bool bypass_bitstream,
 
 	if (_verbose > 0) {
 		if ((ret = get_status(&status)) < 0) {
-			delete _bit;
 			throw std::runtime_error("get device status failed with error code " +
 				std::to_string(ret));
 		}
@@ -166,8 +159,6 @@ DFU::~DFU()
 {
 	close_DFU();
 	libusb_exit(usb_ctx);
-	if (_bit)
-		delete _bit;
 }
 
 /* open the device using VID and PID
