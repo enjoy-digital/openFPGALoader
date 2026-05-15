@@ -7,17 +7,29 @@
 #include "display.hpp"
 #include <stdio.h>
 #include <stdlib.h>
+#include <cstdint>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <utility>
-#ifndef _WIN32
-#include <arpa/inet.h>
-#else
-//for ntohs
-#include <winsock2.h>
-#endif
 
+namespace {
+uint16_t read_be16(const std::string &data, int pos)
+{
+	return (static_cast<uint16_t>(static_cast<uint8_t>(data[pos])) << 8) |
+		static_cast<uint16_t>(static_cast<uint8_t>(data[pos + 1]));
+}
+
+uint32_t read_be32(const std::string &data, int pos)
+{
+	uint32_t value = 0;
+	for (int i = 0; i < 4; ++i) {
+		value <<= 8;
+		value |= static_cast<uint8_t>(data[pos + i]);
+	}
+	return value;
+}
+}
 
 #define display(...) \
 	do { if (_verbose) fprintf(stdout, __VA_ARGS__);} while(0)
@@ -44,8 +56,7 @@ int BitParser::parseHeader()
 		printError("BitParser: Bound check failure. Can't read Field 1 length");
 		return -1;
 	}
-	length = *(uint16_t *)&_raw_data[0];
-	length = ntohs(length);
+	length = read_be16(_raw_data, 0);
 	pos_data += length + 2;
 
 	if (pos_data + 2 >= static_cast<int>(_raw_data.size())) {
@@ -53,8 +64,7 @@ int BitParser::parseHeader()
 		return -1;
 	}
 
-	length = ((static_cast<uint16_t>(_raw_data[pos_data]) & 0xff) << 8) |
-		((static_cast<uint16_t>(_raw_data[pos_data + 1]) & 0xff) << 0);
+	length = read_be16(_raw_data, pos_data);
 
 	pos_data += 2;
 
@@ -71,8 +81,7 @@ int BitParser::parseHeader()
 				printError("BitParser: Bound check failure, Field length");
 				return -1;
 			}
-			length = ((static_cast<uint16_t>(_raw_data[pos_data]) & 0xff) << 8) |
-				((static_cast<uint16_t>(_raw_data[pos_data + 1]) & 0xff) << 0);
+			length = read_be16(_raw_data, pos_data);
 			pos_data += 2;
 		} else {
 			length = 4;
@@ -129,11 +138,7 @@ int BitParser::parseHeader()
 				_hdr["hour"] = tmp.substr(0, length);
 				break;
 			case 'e': /* file size */
-				_bit_length = 0;
-				for (int i = 0; i < 4; i++) {
-					_bit_length <<= 8;
-					_bit_length |= 0xff & tmp[i];
-				}
+				_bit_length = static_cast<int>(read_be32(tmp, 0));
 				return pos_data;
 
 				break;
