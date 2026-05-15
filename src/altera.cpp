@@ -27,6 +27,14 @@
 #define BYPASS 0x3FF
 #define IRLENGTH 10
 
+namespace {
+void write_le16(uint16_t value, unsigned char *out)
+{
+	out[0] = static_cast<unsigned char>(value & 0xff);
+	out[1] = static_cast<unsigned char>((value >> 8) & 0xff);
+}
+}
+
 Altera::Altera(Jtag *jtag, const std::string &filename,
 	const std::string &file_type, Device::prog_type_t prg_type,
 	const std::string &device_package,
@@ -110,7 +118,7 @@ void Altera::programMem(RawParser &_bit)
 	 * state idle
 	 */
 	/* ir 0x02 IRLENGTH */
-	*reinterpret_cast<uint16_t *>(cmd) = 0x02;
+	write_le16(0x02, cmd);
 	_jtag->shiftIR(cmd, NULL, IRLENGTH, Jtag::PAUSE_IR);
 	/* RUNTEST IDLE 12000 TCK ENDSTATE IDLE; */
 	_jtag->set_state(Jtag::RUN_TEST_IDLE);
@@ -137,7 +145,7 @@ void Altera::programMem(RawParser &_bit)
 
 	/* reboot */
 	/* SIR 10 TDI (004); */
-	*reinterpret_cast<uint16_t *>(cmd) = 0x04;
+	write_le16(0x04, cmd);
 	_jtag->shiftIR(cmd, NULL, IRLENGTH, Jtag::PAUSE_IR);
 	/* RUNTEST 60 TCK; */
 	_jtag->set_state(Jtag::RUN_TEST_IDLE);
@@ -153,7 +161,7 @@ void Altera::programMem(RawParser &_bit)
 	_jtag->shiftDR(tx, rx, 864, Jtag::RUN_TEST_IDLE);
 	/* TBD -> something to check */
 	/* SIR 10 TDI (003); */
-	*reinterpret_cast<uint16_t *>(cmd) = 0x003;
+	write_le16(0x003, cmd);
 	_jtag->shiftIR(cmd, NULL, IRLENGTH, Jtag::PAUSE_IR);
 	/* RUNTEST 49152 TCK; */
 	_jtag->set_state(Jtag::RUN_TEST_IDLE);
@@ -162,7 +170,7 @@ void Altera::programMem(RawParser &_bit)
 	_jtag->set_state(Jtag::RUN_TEST_IDLE);
 	_jtag->toggleClk(512);
 	 /* SIR 10 TDI (3FF); */
-	*reinterpret_cast<uint16_t *>(cmd) = BYPASS;
+	write_le16(BYPASS, cmd);
 	_jtag->shiftIR(cmd, NULL, IRLENGTH, Jtag::PAUSE_IR);
 
 	/* RUNTEST 12000 TCK; */
