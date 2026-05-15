@@ -15,6 +15,7 @@
 #include <iomanip>
 #include <iostream>
 #include <list>
+#include <memory>
 #include <stdexcept>
 
 #include "jtag.hpp"
@@ -942,17 +943,17 @@ bool Lattice::clearSRAM()
 bool Lattice::program_extFlash(unsigned int offset, bool unprotect_flash)
 {
 	int ret;
-	ConfigBitstreamParser *_bit;
+	std::unique_ptr<ConfigBitstreamParser> _bit;
 
 	printInfo("Open file ", false);
 	try {
 		if (_file_extension == "mcs")
-			_bit = new McsParser(_filename, true, _verbose);
+			_bit = std::make_unique<McsParser>(_filename, true, _verbose);
 		else if (_file_extension == "bit")
-			_bit = new LatticeBitParser(_filename, false,
+			_bit = std::make_unique<LatticeBitParser>(_filename, false,
 				_fpga_family==ECP3_FAMILY, _verbose);
 		else
-			_bit = new RawParser(_filename, false);
+			_bit = std::make_unique<RawParser>(_filename, false);
 		printSuccess("DONE");
 	} catch (std::exception &e) {
 		printError("FAIL");
@@ -963,7 +964,6 @@ bool Lattice::program_extFlash(unsigned int offset, bool unprotect_flash)
 	printInfo("Parse file ", false);
 	if (_bit->parse() == EXIT_FAILURE) {
 		printError("FAIL");
-		delete _bit;
 		return false;
 	} else {
 		printSuccess("DONE");
@@ -980,20 +980,18 @@ bool Lattice::program_extFlash(unsigned int offset, bool unprotect_flash)
 			snprintf(mess, 256, "mismatch between target's idcode and bitstream idcode\n"
 				"\tbitstream has 0x%08X hardware requires 0x%08x", bit_idcode, idcode);
 			printError(mess);
-			delete _bit;
 			return false;
 		}
 	}
 
 	if (_file_extension == "mcs") {
-		McsParser *parser = (McsParser *)_bit;
+		McsParser *parser = static_cast<McsParser *>(_bit.get());
 		ret = FlashInterface::write(parser->getRecords(), unprotect_flash, true);
 	} else {
 		ret = FlashInterface::write(offset, _bit->getData(), _bit->getLength() / 8,
 			unprotect_flash);
 	}
 
-	delete _bit;
 	return ret;
 }
 
