@@ -36,6 +36,11 @@ FLASH_STATUS_VALUES = {
     "SVF",
     "TBD",
 }
+ALLOWED_DUPLICATE_BOARD_IDS = {
+    "arty": "legacy board alias used by multiple Digilent instruments",
+    "ice40_generic": "generic FTDI SPI wiring shared by multiple iCE40 boards",
+    "runber": "shared FT232 profile used by Runber and MiniSpartan6+ entries",
+}
 
 
 class Reporter:
@@ -198,7 +203,11 @@ def check_boards(data: Any, reporter: Reporter) -> None:
 
     for board_id, count in sorted(Counter(ids).items()):
         if count > 1:
-            reporter.warning(rel_path, f"duplicate board ID {board_id!r} appears {count} times")
+            reason = ALLOWED_DUPLICATE_BOARD_IDS.get(board_id)
+            if reason is None:
+                reporter.error(rel_path, f"duplicate board ID {board_id!r} appears {count} times")
+            else:
+                reporter.warning(rel_path, f"duplicate board ID {board_id!r} appears {count} times ({reason})")
 
 
 def check_fpga_entry(entry: dict[str, Any], location: str, reporter: Reporter) -> None:
