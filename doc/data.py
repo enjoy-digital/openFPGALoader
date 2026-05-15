@@ -1,11 +1,14 @@
 from typing import Dict, List, Optional, Union
 from pathlib import Path
+from os import environ
 from dataclasses import dataclass
 from yaml import safe_load
 from tabulate import tabulate
 
 
 ROOT = Path(__file__).resolve().parent
+DOCS_OFFLINE = environ.get("OFL_DOCS_OFFLINE") == "1"
+CONSTRAINTS_BASE_URL = "https://hdl.github.io/constraints/boards"
 
 
 @dataclass
@@ -32,6 +35,8 @@ def BoardDataToTable(data: List[Board], tablefmt: str = "rst") -> str:
             return None
         if isinstance(constraints, str):
             constraints = [constraints]
+        if DOCS_OFFLINE:
+            return " ".join([f"`{item} ➚ <{CONSTRAINTS_BASE_URL}/{item.lower()}.html>`__" for item in constraints])
         return " ".join([f":ref:`{item} ➚ <constraints:boards:{item.lower()}>`" for item in constraints])
 
     return tabulate(

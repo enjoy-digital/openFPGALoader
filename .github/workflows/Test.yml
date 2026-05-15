@@ -27,7 +27,7 @@ jobs:
 
       - name: '📓 Build docs'
         run: |
-          scripts/check-docs.sh
+          scripts/check-docs.sh --strict
 
 
   doc:

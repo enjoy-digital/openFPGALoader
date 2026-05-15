@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from sys import path as sys_path
+from os import environ
 from os.path import abspath
 from pathlib import Path
 from json import loads
@@ -22,11 +23,15 @@ from data import (
 
 # -- General configuration ------------------------------------------------
 
+DOCS_OFFLINE = environ.get("OFL_DOCS_OFFLINE") == "1"
+
 extensions = [
     # Standard Sphinx extensions
     "sphinx.ext.extlinks",
-    "sphinx.ext.intersphinx",
 ]
+
+if not DOCS_OFFLINE:
+    extensions.append("sphinx.ext.intersphinx")
 
 templates_path = ["_templates"]
 
@@ -99,10 +104,11 @@ texinfo_documents = [
 
 # -- Sphinx.Ext.InterSphinx -----------------------------------------------
 
-intersphinx_mapping = {
-    "python":      ("https://docs.python.org/3/", None),
-    "constraints": ("https://hdl.github.io/constraints", None)
-}
+if not DOCS_OFFLINE:
+    intersphinx_mapping = {
+        "python":      ("https://docs.python.org/3/", None),
+        "constraints": ("https://hdl.github.io/constraints", None)
+    }
 
 # -- Sphinx.Ext.ExtLinks --------------------------------------------------
 
