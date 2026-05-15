@@ -21,18 +21,18 @@
  * CS	-> ADBUS3
  */
 
-/* GGM: Faut aussi definir l'etat des broches par defaut */
-/* necessaire en mode0 et 1, ainsi qu'entre 2 et 3
+/* GGM: The default pin state also needs to be defined. */
+/* Required for modes 0 and 1, and between modes 2 and 3.
  */
-/* Rappel :
- * Mode0 : clk idle low, ecriture avant le premier front
- * 			ie lecture sur le premier front (montant)
- * Mode1 : clk idle low, ecriture sur le premier front (montant)
- * 			lecture sur le second front (descendant)
- * Mode2 : clk idle high, ecriture avant le premier front
- * 			lecture sur le premier front (descendant)
- * Mode3 : clk idle high, ecriture sur le premier front (descendant)
- * 			lecture sur le second front (montant)
+/* Reminder:
+ * Mode0: clk idle low, write before the first edge,
+ *        read on the first edge (rising).
+ * Mode1: clk idle low, write on the first edge (rising),
+ *        read on the second edge (falling).
+ * Mode2: clk idle high, write before the first edge,
+ *        read on the first edge (falling).
+ * Mode3: clk idle high, write on the first edge (falling),
+ *        read on the second edge (rising).
  */
 void FtdiSpi::setMode(uint8_t mode)
 {

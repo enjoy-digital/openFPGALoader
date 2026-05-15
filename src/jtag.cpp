@@ -80,19 +80,16 @@
  * AD3 -> TMS
  */
 
-/* Rmq:
- * pour TMS: l'envoi de n necessite de mettre n-1 comme longueur
- *           mais le bit n+1 est utilise pour l'etat suivant le dernier
- *           front. Donc il faut envoyer 6bits ([5:0]) pertinents pour
- *           utiliser le bit 6 comme etat apres la commande,
- *           le bit 7 corresponds a l'etat de TDI (donc si on fait 7 cycles
- *           l'etat de TDI va donner l'etat de TMS...)
- * transfert/lecture: le dernier bit de IR ou DR doit etre envoye en
- *           meme temps que le TMS qui fait sortir de l'etat donc il faut
- *           pour n bits a transferer :
- *           - envoyer 8bits * (n/8)-1
- *           - envoyer les 7 bits du dernier octet;
- *           - envoyer le dernier avec 0x4B ou 0x6B
+/* Note:
+ * for TMS, sending n cycles requires setting n-1 as the length, but bit n+1
+ * is used for the state after the last edge. Send 6 relevant bits ([5:0])
+ * to use bit 6 as the state after the command. Bit 7 maps to TDI state, so
+ * with 7 cycles the TDI state becomes the TMS state.
+ * For transfer/read, the last IR or DR bit must be sent at the same time as
+ * the TMS transition that leaves the state. For n bits:
+ *           - send 8 bits * (n / 8) - 1
+ *           - send the 7 bits of the last byte
+ *           - send the last bit with 0x4B or 0x6B
  */
 
 Jtag::Jtag(const cable_t &cable, const jtag_pins_conf_t *pin_conf,

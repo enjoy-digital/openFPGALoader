@@ -29,7 +29,7 @@ class ConfigBitstreamParser {
 		std::string getFilename() const {return _filename;}
 
 		/**
-		 * \brief display header informations
+		 * \brief display header information
 		 */
 		virtual void displayHeader();
 

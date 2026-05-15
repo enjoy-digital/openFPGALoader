@@ -17,11 +17,11 @@
 
 /* line format
  * :LLAAAATTHH...HHCC
- * LL   : nb octets de data dans la ligne (hexa)
- * AAAA : addresse du debut de la ligne ou mettre les data 
- * TT   : type de la ligne (cf. plus bas)
- * HH   : le champ de data
- * CC   : Checksum (cf. plus bas)
+ * LL   : number of data bytes in the line (hex)
+ * AAAA : start address for the line data
+ * TT   : line type (see below)
+ * HH   : data field
+ * CC   : checksum (see below)
  */
 /* type : 00 -> data + addr 16b
  *        01 -> end of file

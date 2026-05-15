@@ -51,7 +51,7 @@ class POFParser: public ConfigBitstreamParser {
 		int getLength(const std::string &section_name);
 
 		/**
-         * \brief display header informations
+         * \brief display header information
          */
         void displayHeader() override;
 

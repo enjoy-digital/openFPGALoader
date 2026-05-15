@@ -250,7 +250,7 @@ int JedParser::parse()
 	}
 
 	/* the line starting with STX may contains
-	 * others informations */
+	 * other information */
 	_ss.read(&c, 1);
 	if (c != '*')  // something to process
 		_ss.seekg(-1, _ss.cur);

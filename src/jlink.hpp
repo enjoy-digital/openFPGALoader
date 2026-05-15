@@ -192,7 +192,7 @@ class Jlink: public JtagInterface {
 		};
 
 		/*!
-		 * \brief lowlevel write: EMU_CMD_HW_JTAGx implementation
+		 * \brief low-level write: EMU_CMD_HW_JTAGx implementation
 		 * \param[out]: tdo: TDO read buffer (may be null)
 		 * \return false when failure
 		 */
@@ -236,7 +236,7 @@ class Jlink: public JtagInterface {
 		bool cmd_write(uint8_t cmd, uint8_t param);
 
 		/*!
-		 * \brief lowlevel method to read using libusb_bulk_transfer
+		 * \brief low-level method to read using libusb_bulk_transfer
 		 *             with read endpoint. If required do OByte read
 		 * \param[out] buf: buffer used to store read Bytes
 		 * \param[in] size: buffer size
@@ -244,7 +244,7 @@ class Jlink: public JtagInterface {
 		 */
 		int read_device(uint8_t *buf, uint32_t size);
 		/*!
-		 * \brief lowlevel method to write using libusb_bulk_transfer
+		 * \brief low-level method to write using libusb_bulk_transfer
 		 *             with write endpoint.
 		 * \param[in] buf: Bytes to send
 		 * \param[in] size: buffer size
@@ -293,7 +293,7 @@ class Jlink: public JtagInterface {
 		libusb_device_handle *jlink_handle;
 		libusb_context *jlink_ctx;
 		std::vector<jlink_devices_t> device_available; /*!< list of compatible devices */
-		bool _verbose; /*!< display informations */
+		bool _verbose; /*!< display information */
 		bool _debug;   /*!< display debug messages */
 		bool _quiet;   /*!< no messages */
 

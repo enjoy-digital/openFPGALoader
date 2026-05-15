@@ -9,14 +9,14 @@ project(openFPGALoader VERSION "1.1.1" LANGUAGES CXX)
 #endif()
 
 ####################################################################################################
-# Generics Options
+# Generic Options
 ####################################################################################################
 
 option(ENABLE_OPTIM       "Enable build with -O3 optimization level"             ON)
 option(BUILD_STATIC       "Whether or not to build with static libraries"        OFF)
 option(USE_PKGCONFIG      "Use pkgconfig to find libraries"                      ON)
 option(LINK_CMAKE_THREADS "Use CMake find_package to link the threading library" OFF)
-option(WINDOWS_CROSSCOMPILE "Enable cross-compile on windows"                    OFF)
+option(WINDOWS_CROSSCOMPILE "Enable cross-compile on Windows"                    OFF)
 option(WINDOWS_STATIC_ZLIB "Link zlib statically for Windows builds"             ON)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -31,7 +31,7 @@ option(ENABLE_USB_SCAN "Enable USB Scan option" ON)
 # CABLES Options
 ####################################################################################################
 
-# set all cable on by default
+# Enable all cables by default
 option(ENABLE_CABLE_ALL        "Enable all cables"                            ON)
 
 option(ENABLE_ANLOGIC_CABLE    "enable Anlogic cable (requires libUSB)"       ${ENABLE_CABLE_ALL})
@@ -81,7 +81,7 @@ endif()
 # VENDORS Options
 ####################################################################################################
 
-# set all vendor on by default
+# Enable all vendors by default
 option(ENABLE_VENDORS_ALL         "Enable all vendors support"                             ON)
 
 option(ENABLE_ALTERA_SUPPORT      "enable Altera FPGAs Support"                            ${ENABLE_VENDORS_ALL})
@@ -104,20 +104,19 @@ set(USE_LIBFTDI   OFF)
 set(USE_LIBUSB    OFF)
 set(USE_LIBUSB_LL OFF)
 
-# USB BlasterII and Xilinx Platform Cable USB requires FX2 driver
+# USB BlasterII and Xilinx Platform Cable USB require the FX2 driver
 if (ENABLE_XILINX_PLATFORM_CABLE_USB OR ENABLE_USB_BLASTERII)
 	set(USE_FX2_LL ON)
 endif()
 
-# Only adds libftdi as dependency when a cable
-# need this library.
+# Only add libftdi as a dependency when a cable needs this library.
 if (ENABLE_FTDI_BASED_CABLE OR ENABLE_USB_BLASTERI OR ENABLE_XILINX_VIRTUAL_CABLE_SERVER)
 	set(USE_LIBFTDI ON)
 else()
 	message("disabled all cables based on FTDI devices")
 endif(ENABLE_FTDI_BASED_CABLE OR ENABLE_USB_BLASTERI OR ENABLE_XILINX_VIRTUAL_CABLE_SERVER)
 
-# Only adds libusb as dependency when a cable need this library
+# Only add libusb as a dependency when a cable needs this library
 if (ENABLE_DFU OR ENABLE_ANLOGIC_CABLE OR ENABLE_CH347 OR ENABLE_DIRTYJTAG
 		OR ENABLE_ESP_USB OR ENABLE_JLINK OR ENABLE_GOWIN_GWU2X OR USE_FX2_LL OR ENABLE_USB_SCAN)
 	set(USE_LIBUSB ON)

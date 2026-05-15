@@ -959,7 +959,7 @@ int parse_opt(int argc, char **argv, struct arguments *args,
 				"provides size in Byte to dump, must be used with dump-flash",
 				cxxopts::value<unsigned int>(args->file_size))
 			("file-type",
-				"provides file type instead of let's deduced by using extension",
+				"provides file type instead of deducing it from the extension",
 				cxxopts::value<std::string>(args->file_type))
 			("flash-sector", "flash sector (Lattice and Altera MAX10 parts only)",
 				cxxopts::value<std::string>(args->flash_sector))
@@ -1245,7 +1245,7 @@ int parse_opt(int argc, char **argv, struct arguments *args,
 		}
 
 		// user ask detect with flash set
-		// detect/display flash CHIP informations instead
+		// detect/display flash CHIP information instead
 		// of FPGA details
 		if (args->detect && args->prg_type == Device::WR_FLASH) {
 			args->detect = false;

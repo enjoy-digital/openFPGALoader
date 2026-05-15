@@ -645,7 +645,7 @@ int DFU::poll_state(uint8_t state) {
 	return (ret > 0) ? status.bState : ret;
 }
 
-/* display details about device informations and capabilities
+/* display details about device information and capabilities
  */
 void DFU::displayDFU()
 {

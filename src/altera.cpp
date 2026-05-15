@@ -464,7 +464,7 @@ void Altera::max10_program(unsigned int offset)
 	uint32_t base_addr;
 	uint8_t update_sectors;
 
-	/* Needs to have some specifics informations about internal flash size/organisation
+	/* Needs to have some specific information about internal flash size/organisation
 	 * and some magics.
 	 */
 	auto mem_map = max10_memory_map.find(_idcode);

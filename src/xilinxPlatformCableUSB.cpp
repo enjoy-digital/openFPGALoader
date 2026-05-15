@@ -79,7 +79,7 @@ XilinxPlatformCableUSB::XilinxPlatformCableUSB(const uint16_t vid,
 				XPCU_INITIALIZED_PID, firmware_file);
 	} catch (std::exception &e) {
 		printError(e.what());
-		throw std::runtime_error("lowlevel init failed");
+		throw std::runtime_error("low-level init failed");
 	}
 
 	fx2->set_interface_alt_setting(0, 1);

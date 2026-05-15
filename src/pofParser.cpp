@@ -231,7 +231,7 @@ uint32_t POFParser::parseSection(uint16_t flag, uint32_t pos, uint32_t size)
 			break;
 		case 0x1a:  // flash sections
 					// 12Bytes ?
-					// followed by flash sections separates by ';'
+					// followed by flash sections separated by ';'
 					// 1B + name + ' ' + cfg data offset (bits) + size (bits)
 			content = _raw_data.substr(pos, size);
 			parseFlag26(flag, pos, size, content);
@@ -248,7 +248,7 @@ uint32_t POFParser::parseSection(uint16_t flag, uint32_t pos, uint32_t size)
 
 /* section with flag 0x11A */
 /* 3 x 32bits -> unknown
- * followed by flash sections separates by ';'
+ * followed by flash sections separated by ';'
  * 1B + name + ' ' + cfg data offset (bits) + size (bits)
  */
 void POFParser::parseFlag26(uint16_t flag, uint32_t pos,

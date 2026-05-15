@@ -22,10 +22,10 @@ const std::string get_shell_env_var(const char* key,
 }
 
 /*!
- * \brief convert a string, separate by delim to a vector
+ * \brief convert a string separated by delimiter to a vector
  * \param[in] in: string to split
- * \param[in] delim: split caracter
- * \return vector a substring
+ * \param[in] delim: split character
+ * \return vector of substrings
  */
 const std::vector<std::string> splitString(const std::string& in,
 		const char delim) noexcept {

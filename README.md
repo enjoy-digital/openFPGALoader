@@ -89,8 +89,8 @@ openFPGALoader -- a program to flash FPGA
                                 external storage
       --file-size arg           provides size in Byte to dump, must be used
                                 with dump-flash
-      --file-type arg           provides file type instead of let's deduced
-                                by using extension
+      --file-type arg           provides file type instead of deducing it
+                                from the extension
       --flash-sector arg        flash sector (Lattice and Altera MAX10 parts
                                 only)
       --fpga-part arg           fpga model flavor + package

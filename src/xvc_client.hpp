@@ -102,13 +102,13 @@ class XVC_client: public JtagInterface {
 				uint8_t *rx, uint32_t rx_size);
 
 		/*!
-		 * \brief lowlevel write: EMU_CMD_HW_JTAGx implementation
+		 * \brief low-level write: EMU_CMD_HW_JTAGx implementation
 		 * \param[out]: tdo: TDO read buffer (may be null)
 		 * \return false when failure
 		 */
 		bool ll_write(uint8_t *tdo);
 
-		bool _verbose; /*!< display informations */
+		bool _verbose; /*!< display information */
 
 		uint8_t *_xfer_buf; /*!> tx buffer */
 		uint8_t *_tms;      /*!< TMS internal buffer */

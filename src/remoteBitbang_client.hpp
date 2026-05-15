@@ -86,7 +86,7 @@ class RemoteBitbang_client: public JtagInterface {
 		bool open_connection(const std::string &ip_addr);
 
 		/*!
-		 * \brief sent one instruction (ASCII format) and read when requested
+		 * \brief send one instruction (ASCII format) and read when requested
 		 * \param[in] instr: ascii instruction
 		 * \param[in] rx: server answer buffer (may be NULL)
 		 * \return -1 when error, 0 when disconnected or tx_size/rx_size
@@ -94,7 +94,7 @@ class RemoteBitbang_client: public JtagInterface {
 		ssize_t xfer_pkt(uint8_t instr, uint8_t *rx);
 
 		/*!
-		 * \brief lowlevel write: write internal buffer (ASCII format)
+		 * \brief low-level write: write internal buffer (ASCII format)
 		 *        and read one char when tdo is not NULL.
 		 * \param[out]: tdo: TDO read pointer (may be null)
 		 * \return false when failure

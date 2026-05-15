@@ -59,13 +59,12 @@ static unsigned char *parse_hex(std::string const &in, size_t byte_length,
 	return txbuf;
 }
 
-/* pas clair:
-* si length != previous length : tout est remis a zero
-* tdi, mask et smask sont memorises. Si pas present c'est la memoire
-* qui est utilise
-* tdo si absent on s'en fout
-* TODO: ameliorer l'analyse des chaines de caracteres
-*/
+/* Not clear:
+ * if length != previous length, everything is reset to zero.
+ * tdi, mask, and smask are remembered. If absent, memory is used.
+ * tdo is ignored when absent.
+ * TODO: improve string parsing
+ */
 void SVF_jtag::parse_XYR(std::vector<std::string> const &vstr, svf_XYR &t)
 {
 	if (_verbose)
