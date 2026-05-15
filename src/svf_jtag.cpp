@@ -36,13 +36,14 @@ void SVF_jtag::clear_XYR(svf_XYR &t)
 	t.smask.clear();
 }
 
-static unsigned char *parse_hex(std::string const &in, size_t byte_length,
+static std::vector<unsigned char> parse_hex(std::string const &in, size_t byte_length,
 		bool default_value)
 {
-	unsigned char *txbuf = new unsigned char[byte_length];
-	char c;
-	ssize_t last_iter = in.size() - (2 * byte_length);
-	for (ssize_t i = (in.size() - 1), pos = 0; i >= last_iter; i--, pos++) {
+	std::vector<unsigned char> txbuf(byte_length);
+	unsigned char c;
+	const ssize_t last_iter = static_cast<ssize_t>(in.size()) -
+		static_cast<ssize_t>(2 * byte_length);
+	for (ssize_t i = static_cast<ssize_t>(in.size()) - 1, pos = 0; i >= last_iter; i--, pos++) {
 		if (i < 0) {
 			c = default_value ? 0x0f : 0x00;
 		} else {
@@ -142,28 +143,26 @@ void SVF_jtag::parse_XYR(std::vector<std::string> const &vstr, svf_XYR &t)
 		size_t byte_len = (t.len + 7) / 8;
 		if (byte_len == 0)
 			return;
-		unsigned char *write_buffer = parse_hex(t.tdi, byte_len, 0);
+		std::vector<unsigned char> write_buffer = parse_hex(t.tdi, byte_len, 0);
 		if (!t.smask.empty()) {
-			unsigned char *smaskbuff = parse_hex(t.smask, byte_len, 0);
+			const std::vector<unsigned char> smaskbuff = parse_hex(t.smask, byte_len, 0);
 			for (unsigned int b = 0; b < byte_len; b++) {
 				write_buffer[b] &= smaskbuff[b];
 			}
-			delete[] smaskbuff;
 		}
-		unsigned char *read_buffer = NULL;
+		std::vector<unsigned char> read_buffer;
+		unsigned char *read_ptr = NULL;
 		if (!t.tdo.empty()) {
-			read_buffer = new unsigned char[byte_len];
-			read_buffer[byte_len - 1] = 0;  // clear the last byte which may not be full;
-		} else {
-			read_buffer = NULL;
+			read_buffer.resize(byte_len);
+			read_ptr = read_buffer.data();
 		}
 		if (write_data == 0)
-			_jtag->shiftIR(write_buffer, read_buffer, t.len, _endir);
+			_jtag->shiftIR(write_buffer.data(), read_ptr, t.len, _endir);
 		else
-			_jtag->shiftDR(write_buffer, read_buffer, t.len, _enddr);
+			_jtag->shiftDR(write_buffer.data(), read_ptr, t.len, _enddr);
 		if (!t.tdo.empty()) {
-			unsigned char *tdobuf = parse_hex(t.tdo, byte_len, 0);
-			unsigned char *maskbuf = parse_hex(t.mask, byte_len, t.mask.empty() ? 1 : 0);
+			const std::vector<unsigned char> tdobuf = parse_hex(t.tdo, byte_len, 0);
+			const std::vector<unsigned char> maskbuf = parse_hex(t.mask, byte_len, t.mask.empty() ? 1 : 0);
 			for (size_t i = 0; i < byte_len; i++) {
 				if ((read_buffer[i] ^ tdobuf[i]) & maskbuf[i]) {
 					std::cerr << "TDO value ";
@@ -171,16 +170,10 @@ void SVF_jtag::parse_XYR(std::vector<std::string> const &vstr, svf_XYR &t)
 						std::cerr << std::uppercase << std::hex << int(read_buffer[j]);
 					}
 					std::cerr << " isn't the one expected: " << std::uppercase << t.tdo << std::endl;
-					delete[] tdobuf;
-					delete[] maskbuf;
 					throw std::exception();
 				}
 			}
-			delete[] tdobuf;
-			delete[] maskbuf;
 		}
-		delete[] write_buffer;
-		delete[] read_buffer;
 	}
 }
 
