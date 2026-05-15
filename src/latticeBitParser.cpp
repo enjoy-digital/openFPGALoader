@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <charconv>
 #include <cctype>
+#include <cstdint>
 #include <iostream>
 #include <locale>
 #include <string_view>
@@ -19,6 +20,15 @@
 
 #include "latticeBitParser.hpp"
 
+namespace {
+uint32_t read_le32(const std::string &data, size_t pos)
+{
+	return static_cast<uint32_t>(static_cast<uint8_t>(data[pos])) |
+		(static_cast<uint32_t>(static_cast<uint8_t>(data[pos + 1])) << 8) |
+		(static_cast<uint32_t>(static_cast<uint8_t>(data[pos + 2])) << 16) |
+		(static_cast<uint32_t>(static_cast<uint8_t>(data[pos + 3])) << 24);
+}
+}
 
 LatticeBitParser::LatticeBitParser(const std::string &filename, bool machxo2, bool ecp3,
 	bool verbose):
@@ -146,7 +156,7 @@ int LatticeBitParser::parse()
 		printError("LatticeBitParser: truncated preamble");
 		return EXIT_FAILURE;
 	}
-	uint32_t preamble = (*(uint32_t *)&_raw_data[_endHeader + 1]);
+	const uint32_t preamble = read_le32(_raw_data, _endHeader + 1);
 	//0xb3beffff is the preamble for encrypted bitstreams in Nexus fpgas
 	if ((preamble != 0xb3bdffff) && (preamble != 0xb3bfffff) && (preamble != 0xb3beffff)) {
 		printError("Error: missing preamble\n");
