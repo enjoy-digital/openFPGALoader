@@ -10,6 +10,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 #include "common.hpp"
 #include "device.hpp"
@@ -424,11 +425,7 @@ bool Altera::max10_program_ufm(const Altera::max10_mem_t *mem, uint32_t offset,
 		return false;
 	}
 
-	uint8_t *buff = (uint8_t *)malloc(length);
-	if (!buff) {
-		printError("max10_program_ufm: Failed to allocate buffer");
-		return false;
-	}
+	std::vector<uint8_t> buff(length);
 
 	/* data needs to be re-ordered */
 	for (uint32_t i = 0; i < length; i+=4) {
@@ -454,15 +451,13 @@ bool Altera::max10_program_ufm(const Altera::max10_mem_t *mem, uint32_t offset,
 	// CFM2 follow UFM0, etc...
 	// so we don't need to iterate
 	printInfo("Write xFM");
-	writeXFM(buff, base_addr, 0, length / 4);
+	writeXFM(buff.data(), base_addr, 0, length / 4);
 
 	/* Verify */
 	if (_verify)
-		verifyxFM(buff, base_addr, 0, length / 4);
+		verifyxFM(buff.data(), base_addr, 0, length / 4);
 
 	max10_flow_disable();
-
-	free(buff);
 
 	return true;
 }
