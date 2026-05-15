@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include <cstring>
+#include <memory>
 #include <stdexcept>
 
 #include "ftdiJtagMPSSE.hpp"
@@ -26,21 +27,22 @@ XVC_server::XVC_server(int port, const cable_t & cable,
 	const std::string & serial, uint32_t clkHZ, int8_t verbose,
 	const std::string & ip_adr, const bool invert_read_edge,
 	const std::string & firmware_path):_verbose(verbose > 1),
-			_jtag(NULL), _port(port), _sock(-1),
+			_jtag(nullptr), _port(port), _sock(-1),
 			_is_stopped(false), _must_stop(false),
-			_buffer_size(1048576), _state(Jtag::RUN_TEST_IDLE)
+			_buffer_size(1048576), _tmstdi(_buffer_size),
+			_result(_buffer_size / 2), _state(Jtag::RUN_TEST_IDLE)
 {
 	(void)pin_conf;
 	(void)ip_adr;
 	(void)firmware_path;
 	switch (cable.type) {
 	case MODE_FTDI_SERIAL:
-		_jtag = new FtdiJtagMPSSE(cable, dev, serial, clkHZ,
+		_jtag = std::make_unique<FtdiJtagMPSSE>(cable, dev, serial, clkHZ,
 					  invert_read_edge, _verbose);
 		break;
 #ifdef ENABLE_LIBGPIOD
 	case MODE_LIBGPIOD_BITBANG:
-		_jtag = new LibgpiodJtagBitbang(pin_conf, dev, clkHZ, verbose);
+		_jtag = std::make_unique<LibgpiodJtagBitbang>(pin_conf, dev, clkHZ, verbose);
 		break;
 #endif
 #if 0
@@ -79,18 +81,11 @@ XVC_server::XVC_server(int port, const cable_t & cable,
 		std::cerr << "Jtag: unknown cable type" << std::endl;
 		throw std::exception();
 	}
-
-	_tmstdi = (unsigned char *)malloc(sizeof(unsigned char) * _buffer_size);
-	_result = (unsigned char *)malloc(sizeof(unsigned char) * (_buffer_size / 2));
 }
 
 XVC_server::~XVC_server()
 {
 	close_connection();
-	if (_jtag)
-		delete _jtag;
-	free(_tmstdi);
-	free(_result);
 }
 
 bool XVC_server::open_connection()
@@ -221,14 +216,13 @@ bool XVC_server::listen_loop()
 {
 	_is_stopped = false;
 	_must_stop = false;
-	_thread = new std::thread(&XVC_server::thread_listen, this);
+	_thread = std::thread(&XVC_server::thread_listen, this);
 	printInfo("Press to quit");
 	getchar();
 	_must_stop = true;
 	close_connection();
 	while (!_is_stopped){}
-	_thread->join();
-	delete _thread;
+	_thread.join();
 
 	return true;
 }
@@ -288,8 +282,8 @@ int XVC_server::handle_data(int fd)
 		} else if (memcmp(cmd, "se", 2) == 0) {
 			if ((ret = sread(fd, cmd, 9)) != 1)
 				return ret;
-			memcpy(_result, cmd + 5, 4);
-			if (write(fd, _result, 4) != 4) {
+			memcpy(_result.data(), cmd + 5, 4);
+			if (write(fd, _result.data(), 4) != 4) {
 				printError("write");
 				return 1;
 			}
@@ -349,11 +343,11 @@ int XVC_server::handle_data(int fd)
 		}
 
 		/* 3. receive 2 x nr_bytes (TMS + TDI) */
-		if ((ret = sread(fd, _tmstdi, nr_bytes * 2)) != 1) {
+		if ((ret = sread(fd, _tmstdi.data(), nr_bytes * 2)) != 1) {
 			printError("reading data failed");
 			return ret;
 		}
-		memset(_result, 0, nr_bytes);
+		memset(_result.data(), 0, nr_bytes);
 
 		if (_verbose) {
 			printInfo("\tNumber of Bits  : " + std::to_string(len));
@@ -369,12 +363,12 @@ int XVC_server::handle_data(int fd)
 		if (!((_state == Jtag::EXIT1_IR && len == 5 && _tmstdi[0] == 0x17) ||
 				(_state == Jtag::EXIT1_DR && len == 4 && _tmstdi[0] == 0x6b))) {
 			// update state using tms sequence
-			set_state(_tmstdi, len);
-			_jtag->writeTMSTDI(_tmstdi, _tmstdi + nr_bytes, _result, len);
+			set_state(_tmstdi.data(), len);
+			_jtag->writeTMSTDI(_tmstdi.data(), _tmstdi.data() + nr_bytes, _result.data(), len);
 		}
 
 		/* send received TDO sequence */
-		if (send(fd, _result, nr_bytes, 0) != nr_bytes) {
+		if (send(fd, _result.data(), nr_bytes, 0) != nr_bytes) {
 			printError("write");
 			return 1;
 		}

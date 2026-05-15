@@ -12,8 +12,10 @@
 
 #include <netinet/in.h>
 
+#include <memory>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "jtag.hpp"
 
@@ -75,16 +77,16 @@ class XVC_server {
 		int sread(int fd, void *target, int len);
 
 	    int _verbose;          /*!< verbose level */
-		JtagInterface *_jtag;  /*!< jtag interface */
+		std::unique_ptr<JtagInterface> _jtag;  /*!< jtag interface */
 		int _port;             /*!< network port */
 		int _sock;             /*!< server socket descriptor */
 		struct sockaddr_in _sock_addr;
-		std::thread *_thread;  /*!< connection thread */
+		std::thread _thread;   /*!< connection thread */
 		volatile bool _is_stopped;      /*!< true when thread is stopped */
 		volatile bool _must_stop;       /*!< true to stop thread */
 		uint32_t _buffer_size; /*!< buffer max capacity TDI+TMS */
-		uint8_t *_tmstdi;      /*!< TDI/TMS from client */
-		uint8_t *_result;      /*!< buffer for server -> client */
+		std::vector<uint8_t> _tmstdi; /*!< TDI/TMS from client */
+		std::vector<uint8_t> _result; /*!< buffer for server -> client */
 		Jtag::tapState_t _state; /*!< actual jtag state */
 };
 
