@@ -12,7 +12,7 @@ Debian/Ubuntu
 openFPGALoader is available in the default repositories:
 
 .. code-block:: bash
-    
+
     sudo apt install openfpgaloader
 
 Guix
@@ -59,7 +59,7 @@ openFPGALoader is available as a Copr repository:
     sudo dnf copr enable mobicarte/openFPGALoader
     sudo dnf install openFPGALoader
 
-From source 
+From source
 ----------------------------
 
 This application uses ``libftdi1``, so this library must be installed (and, depending on the distribution, headers too):

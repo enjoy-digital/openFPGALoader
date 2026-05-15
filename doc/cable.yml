@@ -8,7 +8,7 @@ anlogicCable:
 arm-usb-ocd-h:
 
   - Name: Olimex ARM-USB-OCD-H adapter
-    Description: High-speed 3-IN-1 fast USB ARM JTAG, USB-to-RS232 virtual port and power supply 5VDC device 
+    Description: High-speed 3-IN-1 fast USB ARM JTAG, USB-to-RS232 virtual port and power supply 5VDC device
     URL: https://www.olimex.com/Products/ARM/JTAG/ARM-USB-OCD-H/
 
 
@@ -22,14 +22,14 @@ arm-usb-tiny-h:
 bus_blaster:
 
   - Name: Dangerousprototypes Bus Blaster
-    Description: Jtag adapter based on ft2232
+    Description: JTAG adapter based on FT2232
     URL: http://dangerousprototypes.com/docs/Bus_Blaster
 
 
 bus_blaster_b:
 
   - Name: Dangerousprototypes Bus Blaster
-    Description: Jtag adapter based on ft2232 (interface B)
+    Description: JTAG adapter based on FT2232 (interface B)
     URL: http://dangerousprototypes.com/docs/Bus_Blaster
 
 
@@ -50,7 +50,7 @@ ch347_jtag:
 ch552_jtag:
 
   - Name: ch552 JTAG adapter
-    Description: Tang Nano USB-JTAG interface. FT2232C clone firmware for CH552 microcontroler
+    Description: Tang Nano USB-JTAG interface. FT2232C clone firmware for CH552 microcontroller
     URL: https://github.com/diodep/ch55x_jtag
 
 
@@ -70,14 +70,14 @@ dfu:
 
 digilent:
 
-  - Name: digilent cable 
+  - Name: Digilent cable
     Description: FT2232 JTAG / UART cable
 
 
 digilent_b:
 
-  - Name: digilent cable 
-    Description: digilent FT2232 JTAG / UART cable (interface B)
+  - Name: Digilent cable
+    Description: Digilent FT2232 JTAG / UART cable (interface B)
 
 
 digilent_hs2:
@@ -137,10 +137,10 @@ efinix_spi_ft4232:
 ft2232:
 
   - Name: FT2232 C/D/H
-    Description: generic programmer cable based on Ftdi FT2232 (interface A)
+    Description: generic programmer cable based on FTDI FT2232 (interface A)
 
   - Name: Tang Nano (1k, 4k, 8k) USB-JTAG interface
-    Description: USB-JTAG/UART debugger based on BL702 microcontroler.
+    Description: USB-JTAG/UART debugger based on BL702 microcontroller.
     URL: https://github.com/sipeed/RV-Debugger-BL702
 
   - Name: Sipeed RV-Debugger-BL702
@@ -148,14 +148,14 @@ ft2232:
     URL: https://github.com/sipeed/RV-Debugger-BL702
 
   - Name: honeycomb USB-JTAG interface.
-    Description: FT2232C clone based on STM32F042 microcontroler
+    Description: FT2232C clone based on STM32F042 microcontroller
     URL: https://github.com/Disasm/f042-ftdi
 
 
 ft2232_b:
 
   - Name: FT2232 C/D/H
-    Description: generic programmer cable based on Ftdi FT2232 (interface B)
+    Description: generic programmer cable based on FTDI FT2232 (interface B)
 
 
 ft231X:
@@ -168,7 +168,7 @@ ft231X:
 ft232:
 
   - Name: FT232H
-    Description: generic programmer cable based on Ftdi FT232Hx. One interface, MPSSE capable
+    Description: generic programmer cable based on FTDI FT232Hx. One interface, MPSSE capable
     URL: https://ftdichip.com/products/ft232hl/
 
 
@@ -189,14 +189,14 @@ ft4232:
 ft4232hp:
 
   - Name: FT4232HP (interface A)
-    Description:  quad interface programmer cable. MPSSE capable. High Speed USB Bridge with Type-C/PD3.0 Controller
+    Description: quad interface programmer cable. MPSSE capable. High Speed USB Bridge with Type-C/PD3.0 Controller
     URL: https://ftdichip.com/wp-content/uploads/2023/02/DS_FT4233HP.pdf
 
 
 ft4232hp_b:
 
   - Name: FT4232HP (interface B)
-    Description:  quad interface programmer cable. MPSSE capable. High Speed USB Bridge with Type-C/PD3.0 Controller
+    Description: quad interface programmer cable. MPSSE capable. High Speed USB Bridge with Type-C/PD3.0 Controller
     URL: https://ftdichip.com/wp-content/uploads/2023/02/DS_FT4233HP.pdf
 
 
@@ -306,7 +306,7 @@ steppenprobe:
 tigard:
 
   - Name: tigard
-    Description: SWD/JTAG/UART/SPI programmer based on Ftdi FT2232HQ
+    Description: SWD/JTAG/UART/SPI programmer based on FTDI FT2232HQ
     URL: https://www.crowdsupply.com/securinghw/tigard
 
 

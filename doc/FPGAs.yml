@@ -98,7 +98,7 @@ Altera:
     URL: https://www.intel.com/content/www/us/en/support/programmable/support-resources/devices/cyclone-ii-support.html
     Memory: OK
     Flash: OK
-    
+
   - Description: Cyclone III
     Model: EP3C16
     URL: https://www.intel.com/content/www/us/en/programmable/products/fpga/cyclone-series/cyclone-iii/support.html
@@ -138,7 +138,7 @@ Altera:
     URL: https://www.intel.com/content/www/us/en/products/programmable/fpga/cyclone-v.html
     Memory: OK
     Flash: NT
-  
+
   - Description: Stratix V GS
     Model:
       - 5SGSD5
@@ -153,7 +153,7 @@ Altera:
     Flash: OK
 
   - Description: Max 10
-    Model: 
+    Model:
       - 10M02
       - 10M08
       - 10M16

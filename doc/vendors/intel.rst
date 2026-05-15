@@ -37,7 +37,7 @@ SVF and RBF files are supported.
 
 You can have Quartus automatically generate SVF and RBF files by adding these lines to the ``qsf`` file, or include them in a ``tcl`` file in FuseSoC
 
-.. code-block:: 
+.. code-block::
 
     set_global_assignment -name ON_CHIP_BITSTREAM_DECOMPRESSION OFF
     set_global_assignment -name GENERATE_RBF_FILE ON
@@ -218,6 +218,3 @@ To load the file:
  .. code-block:: bash
 
     openFPGALoader -c usb-blaster project_name.svf
-
- 
- 
