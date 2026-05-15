@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -175,16 +176,16 @@ void Efinix::program(unsigned int offset, bool unprotect_flash)
 	if (_mode == Device::NONE_MODE)
 		return;
 
-	ConfigBitstreamParser *bit;
+	std::unique_ptr<ConfigBitstreamParser> bit;
 	try {
 		if (_file_extension == "hex" || _file_extension == "bit") {
-			bit = new EfinixHexParser(_filename);
+			bit = std::make_unique<EfinixHexParser>(_filename);
 		} else {
 			if (offset == 0 && _spi) {
 				printError("Error: can't write raw data at the beginning of the flash");
 				throw std::exception();
 			}
-			bit = new RawParser(_filename, false);
+			bit = std::make_unique<RawParser>(_filename, false);
 		}
 	} catch (std::exception &e) {
 		printError("FAIL: " + std::string(e.what()));
@@ -196,7 +197,6 @@ void Efinix::program(unsigned int offset, bool unprotect_flash)
 		printSuccess("DONE");
 	} else {
 		printError("FAIL");
-		delete bit;
 		throw std::runtime_error("Efinix: Failed to parse file: " + _filename);
 	}
 
@@ -214,7 +214,6 @@ void Efinix::program(unsigned int offset, bool unprotect_flash)
 				std::string target = _device_package;
 				std::transform(target.begin(), target.end(), target.begin(), ::tolower);
 				if (!device.empty() && device != target) {
-					delete bit;
 					throw std::runtime_error("device mismatch: " + device + " != " + target);
 				}
 			}
@@ -222,7 +221,6 @@ void Efinix::program(unsigned int offset, bool unprotect_flash)
 			if(hdr.find("mode") != hdr.end()) {
 				std::string mode = bit->getHeaderVal("mode");
 				if (mode.find("passive") != std::string::npos) {
-					delete bit;
 					throw std::runtime_error("passive mode not supported for flash");
 				}
 			}
@@ -235,7 +233,6 @@ void Efinix::program(unsigned int offset, bool unprotect_flash)
 	switch (_mode) {
 		case MEM_MODE:
 			if (!programJTAG(data, length)) {
-				delete bit;
 				throw std::runtime_error("Efinix: Failed to load bitstream");
 			}
 			break;
@@ -246,15 +243,12 @@ void Efinix::program(unsigned int offset, bool unprotect_flash)
 			else
 				ret = programSPI(offset, data, length, unprotect_flash);
 			if (!ret) {
-				delete bit;
 				throw std::runtime_error("Efinix: Failed to write bitstream in flash");
 			}
 			break;
 		default:
 			return;
 	}
-
-	delete bit;
 }
 
 bool Efinix::detect_flash()
