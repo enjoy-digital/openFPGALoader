@@ -160,7 +160,7 @@ class Jtag {
 	tapState_t _state;
 	int _tms_buffer_size;
 	int _num_tms;
-	unsigned char *_tms_buffer;
+	std::vector<unsigned char> _tms_buffer;
 	std::string _board_name;
 	const std::map<uint32_t, misc_device>& _user_misc_devs;
 

@@ -101,6 +101,7 @@ Jtag::Jtag(const cable_t &cable, const jtag_pins_conf_t *pin_conf,
 			_verbose(verbose > 1),
 			_state(RUN_TEST_IDLE),
 			_tms_buffer_size(128), _num_tms(0),
+			_tms_buffer(_tms_buffer_size),
 			_board_name("nope"), _user_misc_devs(user_misc_devs),
 			device_index(0), _dr_bits_before(0), _dr_bits_after(0),
 			_ir_bits_before(0), _ir_bits_after(0), _curr_tdi(1)
@@ -222,17 +223,11 @@ Jtag::Jtag(const cable_t &cable, const jtag_pins_conf_t *pin_conf,
 		throw std::exception();
 	}
 
-	_tms_buffer = (unsigned char *)malloc(sizeof(unsigned char) * _tms_buffer_size);
-	if (_tms_buffer == nullptr)
-		throw std::runtime_error("Error: memory allocation failed");
-	memset(_tms_buffer, 0, _tms_buffer_size);
-
 	detectChain(32);
 }
 
 Jtag::~Jtag()
 {
-	free(_tms_buffer);
 	delete _jtag;
 }
 int Jtag::detectChain(unsigned max_dev)
@@ -399,10 +394,10 @@ int Jtag::flushTMS(bool flush_buffer)
 	if (_num_tms != 0) {
 		display("%s: %d %x\n", __func__, _num_tms, _tms_buffer[0]);
 
-		ret = _jtag->writeTMS(_tms_buffer, _num_tms, flush_buffer, _curr_tdi);
+		ret = _jtag->writeTMS(_tms_buffer.data(), _num_tms, flush_buffer, _curr_tdi);
 
 		/* reset buffer and number of bits */
-		memset(_tms_buffer, 0, _tms_buffer_size);
+		memset(_tms_buffer.data(), 0, _tms_buffer_size);
 		_num_tms = 0;
 	} else if (flush_buffer) {
 		_jtag->flush();
