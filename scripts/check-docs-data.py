@@ -11,6 +11,31 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 DOC = ROOT / "doc"
+MEMORY_STATUS_VALUES = {
+    "NA",
+    "NT",
+    "OK",
+    "OK (JTAG)",
+    "RBF",
+    "SVF",
+    "TBD",
+}
+FLASH_STATUS_VALUES = {
+    "AS",
+    "EF",
+    "IF",
+    "IF/EF",
+    "NA",
+    "NT",
+    "OK",
+    "OK (DFU)",
+    "OK (primary)",
+    "OK (primary and secondary)",
+    "OK. BPI parallel NOR flash (MT28GU512AAA1EGC)",
+    "POF",
+    "SVF",
+    "TBD",
+}
 
 
 class Reporter:
@@ -65,6 +90,25 @@ def require_text(entry: dict[str, Any], key: str, location: str, reporter: Repor
         return
     if value.strip() != value:
         reporter.error(location, f"{key} has leading or trailing whitespace")
+
+
+def check_status(
+    entry: dict[str, Any],
+    key: str,
+    allowed_values: set[str],
+    location: str,
+    reporter: Reporter,
+    required: bool = True,
+) -> None:
+    value = entry.get(key)
+    if value is None and not required:
+        return
+    require_text(entry, key, location, reporter)
+    if not isinstance(value, str) or not value.strip():
+        return
+    if value not in allowed_values:
+        allowed = ", ".join(sorted(allowed_values))
+        reporter.error(location, f"unknown {key} status {value!r}; expected one of: {allowed}")
 
 
 def check_url(url: Any, location: str, reporter: Reporter, required: bool = True) -> None:
@@ -145,6 +189,8 @@ def check_boards(data: Any, reporter: Reporter) -> None:
         require_text(entry, "ID", location, reporter)
         require_text(entry, "Description", location, reporter)
         require_text(entry, "FPGA", location, reporter)
+        check_status(entry, "Memory", MEMORY_STATUS_VALUES, location, reporter)
+        check_status(entry, "Flash", FLASH_STATUS_VALUES, location, reporter, required=False)
         check_url(entry.get("URL"), location, reporter)
         board_id = entry.get("ID")
         if isinstance(board_id, str) and board_id.strip():
@@ -158,8 +204,8 @@ def check_boards(data: Any, reporter: Reporter) -> None:
 def check_fpga_entry(entry: dict[str, Any], location: str, reporter: Reporter) -> None:
     require_text(entry, "Description", location, reporter)
     check_model(entry.get("Model"), location, reporter)
-    require_text(entry, "Memory", location, reporter)
-    require_text(entry, "Flash", location, reporter)
+    check_status(entry, "Memory", MEMORY_STATUS_VALUES, location, reporter)
+    check_status(entry, "Flash", FLASH_STATUS_VALUES, location, reporter)
     check_url(entry.get("URL"), location, reporter)
 
 
