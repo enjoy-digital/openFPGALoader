@@ -48,7 +48,7 @@ CologneChip::CologneChip(Jtag* jtag, const std::string &filename,
 		ftdi_board_name = "gatemate_pgm_spi";
 	} else if (cable_name == "dirtyJtag") {
 #ifdef ENABLE_DIRTYJTAG
-		_dirtyjtag = reinterpret_cast<DirtyJtag *>(_jtag->_jtag);
+		_dirtyjtag = reinterpret_cast<DirtyJtag *>(_jtag->get_ll_class());
 		_rstn_pin = (1 << 6);
 		_done_pin = 0;
 		_fail_pin = 0;
@@ -68,8 +68,8 @@ CologneChip::CologneChip(Jtag* jtag, const std::string &filename,
 		_fail_pin = DBUS6;
 		_oen_pin   = board->oe_pin;
 
-		/* cast _jtag->_jtag from JtagInterface to FtdiJtagMPSSE to access GPIO */
-		_ftdi_jtag = reinterpret_cast<FtdiJtagMPSSE *>(_jtag->_jtag);
+		/* cast JtagInterface to FtdiJtagMPSSE to access GPIO */
+		_ftdi_jtag = reinterpret_cast<FtdiJtagMPSSE *>(_jtag->get_ll_class());
 
 		_ftdi_jtag->gpio_set_input(_done_pin | _fail_pin);
 		_ftdi_jtag->gpio_set_output(_rstn_pin | _oen_pin);

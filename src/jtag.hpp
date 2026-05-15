@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -103,7 +104,7 @@ class Jtag {
 	 * \brief return a pointer to the transport subclass
 	 * \return a pointer instance of JtagInterface
 	 */
-	JtagInterface *get_ll_class() {return _jtag;}
+	JtagInterface *get_ll_class() {return _jtag.get();}
 
 	enum tapState_t {
 		TEST_LOGIC_RESET = 0,
@@ -145,7 +146,7 @@ class Jtag {
 	/* utilities */
 	void setVerbose(int8_t verbose){_verbose = verbose;}
 
-	JtagInterface *_jtag;
+	std::unique_ptr<JtagInterface> _jtag;
 
  private:
 	/*!
