@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-# set the project name
 project(openFPGALoader VERSION "1.1.1" LANGUAGES CXX)
-add_definitions(-DVERSION=\"v${PROJECT_VERSION}\")
 
 #if(CMAKE_SYSTEM_NAME STREQUAL "Windows" AND NOT CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
 #	set(WINDOWS_CROSSCOMPILE ON)
@@ -179,11 +177,6 @@ if (BUILD_STATIC)
 endif()
 
 include(GNUInstallDirs)
-# By default: DATA_DIR="/usr/local/share"
-add_definitions(-DDATA_DIR=\"${CMAKE_INSTALL_FULL_DATAROOTDIR}\")
-
-add_definitions(-DISE_DIR=\"${ISE_PATH}\")
-add_definitions(-DVIVADO_DIR=\"${VIVADO_PATH}\")
 
 ####################################################################################################
 # Dependencies check/search
@@ -655,6 +648,13 @@ endif()
 add_executable(openFPGALoader
 	${OPENFPGALOADER_SOURCE}
 	${OPENFPGALOADER_HEADERS}
+)
+
+target_compile_definitions(openFPGALoader PRIVATE
+	VERSION="v${PROJECT_VERSION}"
+	DATA_DIR="${CMAKE_INSTALL_FULL_DATAROOTDIR}"
+	ISE_DIR="${ISE_PATH}"
+	VIVADO_DIR="${VIVADO_PATH}"
 )
 
 include_directories(
