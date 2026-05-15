@@ -55,6 +55,9 @@ scripts/check-docs-python.sh
 scripts/check-docs.sh
 ```
 
+`scripts/check-docs-python.sh` validates the documentation Python helpers and
+compatibility YAML data before Sphinx builds the generated tables.
+
 For pull-request style validation, run the strict offline check:
 
 ```bash
