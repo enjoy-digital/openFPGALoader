@@ -37,6 +37,7 @@ openFPGALoader
 
 # Build directory
 build/
+build-*/
 
 # Documentation
 /doc/__pycache__/

@@ -7,6 +7,29 @@ on:
 
 jobs:
 
+  doc-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    name: '📓 Docs check'
+
+    steps:
+      - name: '🧰 Checkout'
+        uses: actions/checkout@v4
+
+      - name: '🐍 Setup Python'
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: '📦 Install dependencies'
+        run: |
+          pip install -r doc/requirements.txt
+
+      - name: '📓 Build docs'
+        run: |
+          sphinx-build -b html doc doc/_build/html
+
+
   doc:
     if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))
     runs-on: ubuntu-latest
@@ -23,7 +46,7 @@ jobs:
 
       - name: '📦 Install dependencies'
         run: |
-          pip install sphinx PyYAML tabulate
+          pip install -r doc/requirements.txt
 
       - name: '📓 Build docs'
         run: |
@@ -42,6 +65,33 @@ jobs:
         with:
           name: openFPGALoader-Documentation
           path: doc/_build/html
+
+
+  lin-minimal-build:
+    name: '🚧🐧 Ubuntu minimal | build'
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: '🧰 Checkout'
+      uses: actions/checkout@v4
+
+    - name: '⚙️ Install dependencies'
+      run: |
+        sudo apt update -qq
+        sudo apt install -y \
+          cmake \
+          gzip \
+          libudev-dev \
+          pkg-config \
+          zlib1g-dev
+
+    - name: '🚧 Build minimal configuration'
+      run: |
+        cmake -S . -B build-minimal \
+          -DENABLE_CABLE_ALL=OFF \
+          -DENABLE_VENDORS_ALL=OFF \
+          -DENABLE_USB_SCAN=OFF
+        cmake --build build-minimal
 
 
   lin-build:
@@ -88,19 +138,19 @@ jobs:
         mkdir -p "${_licenses}"
         install -m 644 ../LICENSE "${_licenses}"
 
-        tar -cvzf ../ubtuntu${{ matrix.os }}.04-openFPGALoader.tgz -C dist .
+        tar -cvzf ../ubuntu${{ matrix.os }}.04-openFPGALoader.tgz -C dist .
 
     - name: '📤 Upload artifact: tarball'
       uses: actions/upload-artifact@v4
       with:
-        name: ubtuntu${{ matrix.os }}.04-openFPGALoader
-        path: ubtuntu${{ matrix.os }}.04-openFPGALoader.tgz
+        name: ubuntu${{ matrix.os }}.04-openFPGALoader
+        path: ubuntu${{ matrix.os }}.04-openFPGALoader.tgz
 
     - name: '🔍 Show package content'
       run: |
         mkdir tmp
         cd tmp
-        tar -xf ../ubtuntu${{ matrix.os }}.04-openFPGALoader.tgz
+        tar -xf ../ubuntu${{ matrix.os }}.04-openFPGALoader.tgz
         tree .
 
 
@@ -152,7 +202,7 @@ jobs:
     - name: '📥 Download artifact: package'
       uses: actions/download-artifact@v4.1.7
       with:
-        name: ubtuntu${{ matrix.os }}.04-openFPGALoader
+        name: ubuntu${{ matrix.os }}.04-openFPGALoader
 
     - name: '🛠️ Install package'
       run: sudo tar -xvzf *.tgz -C /

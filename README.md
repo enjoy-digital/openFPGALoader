@@ -161,6 +161,11 @@ OPENFPGALOADER_SOJ_DIR=/somewhere openFPGALoader xxxx
 `OPENFPGALOADER_SOJ_DIR` must point to directory containing **spiOverJtag**
 bitstreams.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local build, minimal configuration,
+and documentation checks.
+
 ## Sponsors/Partners
 
 ![Sponsors](https://github.com/user-attachments/assets/cb4efce1-ed0c-461c-bd05-9caeb440870d)
