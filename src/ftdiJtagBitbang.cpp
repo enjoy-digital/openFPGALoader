@@ -35,8 +35,6 @@ FtdiJtagBitBang::FtdiJtagBitBang(const cable_t &cable,
 			FTDIpp_MPSSE(cable, dev, serial, clkHZ, verbose), _bitmode(0),
 			_curr_tms(0), _rx_size(0)
 {
-	unsigned char *ptr;
-
 	/* Validate pins */
 	uint8_t pins[] = {pin_conf->tck_pin, pin_conf->tms_pin,
 		pin_conf->tdi_pin, pin_conf->tdo_pin};
@@ -69,10 +67,7 @@ FtdiJtagBitBang::FtdiJtagBitBang(const cable_t &cable,
 	_buffer_size = 4096;
 
 	/* _buffer_size has changed -> resize buffer */
-	ptr = (unsigned char *)realloc(_buffer, sizeof(char) * _buffer_size);
-	if (!ptr)
-		throw std::runtime_error("_buffer realloc failed\n");
-	_buffer = ptr;
+	_buffer.resize(_buffer_size);
 
 	setClkFreq(clkHZ);
 
@@ -250,14 +245,14 @@ int FtdiJtagBitBang::write(uint8_t *tdo, int nb_bit)
 
 	setBitmode((tdo) ? BITMODE_SYNCBB : BITMODE_BITBANG);
 
-	ret = ftdi_write_data(_ftdi, _buffer, _num);
+	ret = ftdi_write_data(_ftdi, _buffer.data(), _num);
 	if (ret != _num) {
 		printf("problem %d written\n", ret);
 		return ret;
 	}
 
 	if (tdo) {
-		ret = ftdi_read_data(_ftdi, _buffer, _num);
+		ret = ftdi_read_data(_ftdi, _buffer.data(), _num);
 		if (ret != _num) {
 			printf("problem %d read\n", ret);
 			return ret;

@@ -7,6 +7,7 @@
 #define _FTDIPP_MPSSE_H
 #include <ftdi.h>
 #include <string>
+#include <vector>
 
 #include "cable.hpp"
 
@@ -79,7 +80,7 @@ class FTDIpp_MPSSE {
 		struct ftdi_context *_ftdi;
 		int _buffer_size;
 		int _num;
-		unsigned char *_buffer;
+		std::vector<unsigned char> _buffer;
 		uint8_t _iproduct[200];
 		uint8_t _imanufacturer[200];
 		uint8_t _iserialnumber[200];

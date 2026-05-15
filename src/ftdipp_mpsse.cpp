@@ -55,11 +55,7 @@ FTDIpp_MPSSE::FTDIpp_MPSSE(const cable_t &cable, const std::string &dev,
 	open_device(serial, 115200);
 	_buffer_size = _ftdi->max_packet_size;
 
-	_buffer = (unsigned char *)malloc(sizeof(unsigned char) * _buffer_size);
-	if (!_buffer) {
-		printError("_buffer malloc failed");
-		throw std::runtime_error("_buffer malloc failed");
-	}
+	_buffer.resize(_buffer_size);
 
 	/* search for iProduct -> need to have
 	 * ftdi->usb_dev (libusb_device_handler) -> libusb_device ->
@@ -133,7 +129,6 @@ FTDIpp_MPSSE::~FTDIpp_MPSSE()
 		snprintf(err, sizeof(err), "unable to config pins : %d %s",
 			ret, ftdi_get_error_string(_ftdi));
 		printError(err);
-		free(_buffer);
 		return;
 	}
 
@@ -141,13 +136,11 @@ FTDIpp_MPSSE::~FTDIpp_MPSSE()
 		snprintf(err, sizeof(err), "unable to reset device : %d %s",
 			ret, ftdi_get_error_string(_ftdi));
 		printError(err);
-		free(_buffer);
 		return;
 	}
 
 	if (close_device() == EXIT_FAILURE)
 		printError("unable to close device");
-	free(_buffer);
 }
 
 void FTDIpp_MPSSE::open_device(const std::string &serial, unsigned int baudrate)
@@ -487,7 +480,7 @@ int FTDIpp_MPSSE::mpsse_store(unsigned char *buff, int len)
 			 * buffer -> just complete buffer
 			 */
 			store_size = _buffer_size - _num;
-			memcpy(_buffer + _num, ptr, store_size);
+			memcpy(_buffer.data() + _num, ptr, store_size);
 			_num += store_size;
 			if ((ret = mpsse_write()) < 0) {
 				printError("mpsse_store: fails to first flush " +
@@ -503,7 +496,7 @@ int FTDIpp_MPSSE::mpsse_store(unsigned char *buff, int len)
 	display("%s %d %d\n", __func__, _num, len);
 #endif
 	if (len > 0) {
-		memcpy(_buffer + _num, ptr, len);
+		memcpy(_buffer.data() + _num, ptr, len);
 		_num += len;
 	}
 	return 0;
@@ -519,7 +512,7 @@ int FTDIpp_MPSSE::mpsse_write()
 	display("%s %d\n", __func__, _num);
 #endif
 
-	if ((ret = ftdi_write_data(_ftdi, _buffer, _num)) != _num) {
+	if ((ret = ftdi_write_data(_ftdi, _buffer.data(), _num)) != _num) {
 		printError("mpsse_write: fail to write with error " +
 				std::to_string(ret) + " (" +
 				std::string(ftdi_get_error_string(_ftdi)) + ")");
