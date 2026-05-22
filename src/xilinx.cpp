@@ -2243,7 +2243,10 @@ int Xilinx::spi_wait(uint8_t cmd, uint8_t mask, uint8_t cond,
 		tx[idx++] = (0x2 << 1) | 1;
 	tx[idx++] = McsParser::reverseByte(cmd);
 
-	_jtag->shiftIR(get_ircode(_ircode_map, _user_instruction), NULL, _irlen, Jtag::UPDATE_IR);
+	if (_soj_is_v2)
+		select_spiOverJtag_user_instruction();
+	else
+		_jtag->shiftIR(get_ircode(_ircode_map, _user_instruction), NULL, _irlen, Jtag::UPDATE_IR);
 	_jtag->shiftDR(tx, NULL, 8 * idx, Jtag::SHIFT_DR);
 
 	do {
@@ -2264,7 +2267,12 @@ int Xilinx::spi_wait(uint8_t cmd, uint8_t mask, uint8_t cond,
 		}
 	} while ((tmp & mask) != cond);
 	_jtag->shiftDR(tx, rx, 8 * 2, Jtag::EXIT1_DR);
-	_jtag->go_test_logic_reset();
+	if (_soj_is_v2) {
+		_jtag->set_state(Jtag::RUN_TEST_IDLE);
+		_jtag->flush();
+	} else {
+		_jtag->go_test_logic_reset();
+	}
 
 	if (count == timeout) {
 		printf("%x\n", tmp);
@@ -2305,10 +2313,9 @@ int Xilinx::spi_put_v2(uint8_t cmd, const uint8_t *tx, uint8_t *rx,
 		idx += len;
 	}
 
-	/* addr BSCAN user1 */
-	_jtag->shiftIR(get_ircode(_ircode_map, _user_instruction), NULL, _irlen);
+	select_spiOverJtag_user_instruction();
 	_jtag->shiftDR(pkt, (rx == NULL) ? NULL : jrx, xfer_bit_len);
-	_jtag->go_test_logic_reset();
+	_jtag->set_state(Jtag::RUN_TEST_IDLE);
 	_jtag->flush();
 
 	if (_verbose) {
@@ -2327,13 +2334,8 @@ int Xilinx::spi_put_v2(uint8_t cmd, const uint8_t *tx, uint8_t *rx,
 			printf("\n");
 		}
 		idx = (mode == 0 ? 3 : 2);
-		const uint8_t shift = _jtag_chain_len;
 		for (uint32_t i = 0; i < len; i++) {
-			rx[i] = McsParser::reverseByte(jrx[i + idx] >> shift);
-			if (shift == 1)
-				rx[i] |= (jrx[i + idx + 1] & 0x01);
-			else
-				rx[i] |= McsParser::reverseByte(jrx[i + idx + 1]) >> (8 - shift);
+			rx[i] = spiOverJtag_decode_byte(jrx, i + idx);
 			if (_verbose)
 				printf("%02x ", rx[i]);
 		}
@@ -2342,6 +2344,29 @@ int Xilinx::spi_put_v2(uint8_t cmd, const uint8_t *tx, uint8_t *rx,
 	}
 
 	return 0;
+}
+
+void Xilinx::select_spiOverJtag_user_instruction()
+{
+	if (_soj_current_instruction == _user_instruction)
+		return;
+
+	_jtag->shiftIR(get_ircode(_ircode_map, _user_instruction), NULL,
+			_irlen, Jtag::UPDATE_IR);
+	_soj_current_instruction = _user_instruction;
+}
+
+uint8_t Xilinx::spiOverJtag_decode_byte(const uint8_t *rx, uint32_t idx) const
+{
+	const uint8_t shift = _jtag_chain_len;
+	uint8_t data = McsParser::reverseByte(rx[idx] >> shift);
+
+	if (shift == 1)
+		data |= rx[idx + 1] & 0x01;
+	else
+		data |= McsParser::reverseByte(rx[idx + 1]) >> (8 - shift);
+
+	return data;
 }
 
 void Xilinx::select_flash_chip(xilinx_flash_chip_t flash_chip) {
@@ -2354,4 +2379,5 @@ void Xilinx::select_flash_chip(xilinx_flash_chip_t flash_chip) {
 		_user_instruction = "USER1";
 		break;
 	}
+	_soj_current_instruction.clear();
 }

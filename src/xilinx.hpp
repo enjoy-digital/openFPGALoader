@@ -175,6 +175,8 @@ class Xilinx: public Device, FlashInterface {
 		/* SpiOverJtag v2 specifics methods */
 		int spi_put_v2(uint8_t cmd, const uint8_t *tx, uint8_t *rx,
 				uint32_t len);
+		void select_spiOverJtag_user_instruction();
+		uint8_t spiOverJtag_decode_byte(const uint8_t *rx, uint32_t idx) const;
 
 	protected:
 		/*!
@@ -275,6 +277,7 @@ class Xilinx: public Device, FlashInterface {
 		std::string _secondary_file_extension; /* file type for the secondary flash file */
 		int _flash_chips; /* bitfield to select the target in boards with two flash chips */
 		std::string _user_instruction; /* which USER bscan instruction to interface with SPI */
+		std::string _soj_current_instruction; /* currently selected spiOverJtag USER instruction */
 		bool _soj_is_v2; /* SpiOverJtag version (1.0 or 2.0) */
 		uint32_t _jtag_chain_len; /* Jtag Chain Length */
 		bool _is_bpi_board; /* true if board uses BPI parallel flash */
