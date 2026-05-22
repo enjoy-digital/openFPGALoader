@@ -2286,26 +2286,28 @@ int Xilinx::spi_wait_v2(uint8_t cmd, uint8_t mask, uint8_t cond,
 	uint8_t end_tx[2] = {0, 0};
 	uint8_t end_rx[2];
 	uint8_t tmp = 0;
-	uint32_t count = 0;
+	uint64_t count = 0;
 	bool matched = false;
 	const uint32_t poll_burst = 64;
+	const uint64_t max_count = static_cast<uint64_t>(timeout) * poll_burst;
 	std::vector<uint8_t> tx(poll_burst + 1, 0);
 	std::vector<uint8_t> rx(poll_burst + 1);
 
 	select_spiOverJtag_user_instruction();
 	_jtag->shiftDR(start_tx, NULL, 8 * sizeof(start_tx), Jtag::SHIFT_DR);
 
-	while (count < timeout && !matched) {
-		uint32_t chunk = timeout - count;
+	while (count < max_count && !matched) {
+		uint64_t chunk = max_count - count;
 		if (chunk > poll_burst)
 			chunk = poll_burst;
 
-		_jtag->shiftDR(tx.data(), rx.data(), 8 * (chunk + 1), Jtag::SHIFT_DR);
+		_jtag->shiftDR(tx.data(), rx.data(),
+				8 * (static_cast<uint32_t>(chunk) + 1), Jtag::SHIFT_DR);
 		for (uint32_t i = 0; i < chunk; i++) {
 			tmp = spiOverJtag_decode_byte(rx.data(), i);
 			count++;
 			if (verbose) {
-				printf("%x %x %x %u %02x %02x\n", tmp, mask, cond,
+				printf("%x %x %x %" PRIu64 " %02x %02x\n", tmp, mask, cond,
 						count, rx[i], rx[i + 1]);
 			}
 			if ((tmp & mask) == cond) {

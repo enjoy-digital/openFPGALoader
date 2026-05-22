@@ -245,7 +245,7 @@ int SPIFlash::sectors_erase(int base_addr, int size)
 		if (ret == -1) {
 			break;
 		}
-		if (_spi->spi_wait(FLASH_RDSR, FLASH_RDSR_WIP, 0x00, 100000, false) == -1) {
+		if (_spi->spi_wait(FLASH_RDSR, FLASH_RDSR_WIP, 0x00, 100000, false) != 0) {
 			ret = -1;
 			break;
 		}
