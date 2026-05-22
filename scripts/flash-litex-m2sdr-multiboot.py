@@ -163,6 +163,22 @@ def run_command(cmd: list[str], dry_run: bool) -> float:
     return elapsed
 
 
+def require_matching_readback(label: str, expected: Path, readback: Path) -> None:
+    if not readback.exists():
+        raise RuntimeError(f"{label} readback failed: {readback} was not created")
+
+    expected_size = expected.stat().st_size
+    readback_size = readback.stat().st_size
+    if readback_size != expected_size:
+        raise RuntimeError(
+            f"{label} readback failed: expected {expected_size} bytes, "
+            f"got {readback_size} bytes"
+        )
+
+    if not filecmp.cmp(expected, readback, shallow=False):
+        raise RuntimeError(f"{label} readback failed: data differs from input image")
+
+
 def flash_board(args: argparse.Namespace, operational: Path, fallback: Path) -> None:
     loader = args.openfpgaloader
     common = [loader, "-b", args.board, "--freq", args.freq]
@@ -227,10 +243,8 @@ def verify_readback(
         )
 
         if not args.dry_run:
-            if not filecmp.cmp(operational, op_readback, shallow=False):
-                raise RuntimeError("operational readback differs from input image")
-            if not filecmp.cmp(fallback, fallback_readback, shallow=False):
-                raise RuntimeError("fallback readback differs from input image")
+            require_matching_readback("operational", operational, op_readback)
+            require_matching_readback("fallback", fallback, fallback_readback)
             print("Readback verify: OK", flush=True)
 
     if not args.no_final_reset:
