@@ -2232,6 +2232,9 @@ int Xilinx::spi_put(const uint8_t *tx, uint8_t *rx, uint32_t len)
 int Xilinx::spi_wait(uint8_t cmd, uint8_t mask, uint8_t cond,
 			uint32_t timeout, bool verbose)
 {
+	if (_soj_is_v2)
+		return spi_wait_v2(cmd, mask, cond, timeout, verbose);
+
 	uint8_t rx[2];
 	uint8_t tx[2];
 	uint8_t tmp;
@@ -2239,14 +2242,9 @@ int Xilinx::spi_wait(uint8_t cmd, uint8_t mask, uint8_t cond,
 	const uint8_t shift = _jtag_chain_len;
 	uint8_t idx = 0;
 
-	if (_soj_is_v2)
-		tx[idx++] = (0x2 << 1) | 1;
 	tx[idx++] = McsParser::reverseByte(cmd);
 
-	if (_soj_is_v2)
-		select_spiOverJtag_user_instruction();
-	else
-		_jtag->shiftIR(get_ircode(_ircode_map, _user_instruction), NULL, _irlen, Jtag::UPDATE_IR);
+	_jtag->shiftIR(get_ircode(_ircode_map, _user_instruction), NULL, _irlen, Jtag::UPDATE_IR);
 	_jtag->shiftDR(tx, NULL, 8 * idx, Jtag::SHIFT_DR);
 
 	do {
@@ -2267,12 +2265,7 @@ int Xilinx::spi_wait(uint8_t cmd, uint8_t mask, uint8_t cond,
 		}
 	} while ((tmp & mask) != cond);
 	_jtag->shiftDR(tx, rx, 8 * 2, Jtag::EXIT1_DR);
-	if (_soj_is_v2) {
-		_jtag->set_state(Jtag::RUN_TEST_IDLE);
-		_jtag->flush();
-	} else {
-		_jtag->go_test_logic_reset();
-	}
+	_jtag->go_test_logic_reset();
 
 	if (count == timeout) {
 		printf("%x\n", tmp);
@@ -2281,6 +2274,58 @@ int Xilinx::spi_wait(uint8_t cmd, uint8_t mask, uint8_t cond,
 	} else {
 		return 0;
 	}
+}
+
+int Xilinx::spi_wait_v2(uint8_t cmd, uint8_t mask, uint8_t cond,
+			uint32_t timeout, bool verbose)
+{
+	uint8_t start_tx[2] = {
+		static_cast<uint8_t>((0x2 << 1) | 1),
+		McsParser::reverseByte(cmd)
+	};
+	uint8_t end_tx[2] = {0, 0};
+	uint8_t end_rx[2];
+	uint8_t tmp = 0;
+	uint32_t count = 0;
+	bool matched = false;
+	const uint32_t poll_burst = 64;
+	std::vector<uint8_t> tx(poll_burst + 1, 0);
+	std::vector<uint8_t> rx(poll_burst + 1);
+
+	select_spiOverJtag_user_instruction();
+	_jtag->shiftDR(start_tx, NULL, 8 * sizeof(start_tx), Jtag::SHIFT_DR);
+
+	while (count < timeout && !matched) {
+		uint32_t chunk = timeout - count;
+		if (chunk > poll_burst)
+			chunk = poll_burst;
+
+		_jtag->shiftDR(tx.data(), rx.data(), 8 * (chunk + 1), Jtag::SHIFT_DR);
+		for (uint32_t i = 0; i < chunk; i++) {
+			tmp = spiOverJtag_decode_byte(rx.data(), i);
+			count++;
+			if (verbose) {
+				printf("%x %x %x %u %02x %02x\n", tmp, mask, cond,
+						count, rx[i], rx[i + 1]);
+			}
+			if ((tmp & mask) == cond) {
+				matched = true;
+				break;
+			}
+		}
+	}
+
+	_jtag->shiftDR(end_tx, end_rx, 8 * sizeof(end_tx), Jtag::EXIT1_DR);
+	_jtag->set_state(Jtag::RUN_TEST_IDLE);
+	_jtag->flush();
+
+	if (!matched) {
+		printf("%x\n", tmp);
+		std::cout << "wait: Error" << std::endl;
+		return -ETIME;
+	}
+
+	return 0;
 }
 
 int Xilinx::spi_put_v2(uint8_t cmd, const uint8_t *tx, uint8_t *rx,

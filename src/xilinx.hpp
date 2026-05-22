@@ -175,6 +175,8 @@ class Xilinx: public Device, FlashInterface {
 		/* SpiOverJtag v2 specifics methods */
 		int spi_put_v2(uint8_t cmd, const uint8_t *tx, uint8_t *rx,
 				uint32_t len);
+		int spi_wait_v2(uint8_t cmd, uint8_t mask, uint8_t cond,
+				uint32_t timeout, bool verbose = false);
 		void select_spiOverJtag_user_instruction();
 		uint8_t spiOverJtag_decode_byte(const uint8_t *rx, uint32_t idx) const;
 
