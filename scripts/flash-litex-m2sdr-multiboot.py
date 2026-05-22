@@ -70,10 +70,20 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="flash boards until interrupted; prompts before each board",
     )
-    parser.add_argument(
+    verify_group = parser.add_mutually_exclusive_group()
+    verify_group.add_argument(
         "--verify-readback",
+        dest="verify_readback",
         action="store_true",
-        help="dump both flash slots after writing and compare them to the input files",
+        default=True,
+        help="dump both flash slots after writing and compare them to the input files "
+             "(default)",
+    )
+    verify_group.add_argument(
+        "--no-verify-readback",
+        dest="verify_readback",
+        action="store_false",
+        help="skip readback verification for maximum throughput",
     )
     parser.add_argument(
         "--no-final-reset",
@@ -106,14 +116,14 @@ def ensure_release_path(release: str, cache_dir: Path) -> Path:
         raise RuntimeError(f"cannot derive filename from URL: {release}")
     cached = cache_dir / name
     if cached.exists():
-        print(f"Using cached release: {cached}")
+        print(f"Using cached release: {cached}", flush=True)
         return cached
 
-    print(f"Downloading {release}")
+    print(f"Downloading {release}", flush=True)
     tmp = cached.with_suffix(cached.suffix + ".tmp")
     urllib.request.urlretrieve(release, tmp)
     tmp.replace(cached)
-    print(f"Cached release: {cached}")
+    print(f"Cached release: {cached}", flush=True)
     return cached
 
 
@@ -142,14 +152,14 @@ def single_match(root: Path, pattern: str) -> Path:
 
 
 def run_command(cmd: list[str], dry_run: bool) -> float:
-    print("+ " + " ".join(cmd))
+    print("+ " + " ".join(cmd), flush=True)
     if dry_run:
         return 0.0
 
     start = time.monotonic()
     subprocess.run(cmd, check=True)
     elapsed = time.monotonic() - start
-    print(f"Elapsed: {elapsed:.2f} s")
+    print(f"Elapsed: {elapsed:.2f} s", flush=True)
     return elapsed
 
 
@@ -172,7 +182,7 @@ def flash_board(args: argparse.Namespace, operational: Path, fallback: Path) -> 
         fallback_cmd.append("--skip-reset")
     fallback_time = run_command(fallback_cmd + [str(fallback)], args.dry_run)
 
-    print(f"Flash total: {op_time + fallback_time:.2f} s")
+    print(f"Flash total: {op_time + fallback_time:.2f} s", flush=True)
 
     if args.verify_readback:
         verify_readback(args, operational, fallback, common)
@@ -221,7 +231,7 @@ def verify_readback(
                 raise RuntimeError("operational readback differs from input image")
             if not filecmp.cmp(fallback, fallback_readback, shallow=False):
                 raise RuntimeError("fallback readback differs from input image")
-            print("Readback verify: OK")
+            print("Readback verify: OK", flush=True)
 
     if not args.no_final_reset:
         run_command(common + ["--reset"], args.dry_run)
@@ -243,8 +253,8 @@ def main() -> int:
         operational = single_match(release_dir, "*_operational.bin")
         fallback = single_match(release_dir, "*_fallback.bin")
 
-        print(f"Operational: {operational}")
-        print(f"Fallback:    {fallback}")
+        print(f"Operational: {operational}", flush=True)
+        print(f"Fallback:    {fallback}", flush=True)
 
         board_index = 1
         if args.loop:
