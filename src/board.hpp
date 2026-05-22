@@ -116,7 +116,7 @@ static std::map <std::string, target_board_t> board_list = {
 	JTAG_BOARD("atumA3Nano",      "",                     "usb-blasterIII", SPI_FLASH, 0, 0, CABLE_DEFAULT),
 	JTAG_BOARD("axe5000",         "",                     "usb-blasterIII", SPI_FLASH, 0, 0, CABLE_DEFAULT),
 	JTAG_BOARD("litex-acorn-baseboard-mini", "xc7a200tsbg484", "",        SPI_FLASH, 0, 0, CABLE_DEFAULT),
-	JTAG_BOARD("litex_m2sdr",     "xc7a200tsbg484",       "ft4232",       SPI_FLASH, 0, 0, CABLE_MHZ(30)),
+	JTAG_BOARD("litex_m2sdr",     "xc7a200tsbg484",       "ft4232",       SPI_FLASH, 0, 0, CABLE_MHZ(15)),
 	JTAG_BOARD("alchitry_au",     "xc7a35tftg256",        "ft2232",       SPI_FLASH, 0, 0, CABLE_DEFAULT),
 	JTAG_BOARD("alchitry_au_plus","xc7a100tftg256",       "ft2232",       SPI_FLASH, 0, 0, CABLE_DEFAULT),
 	JTAG_BOARD("alinx_ax516",     "xc6slx16csg324",       "",             SPI_FLASH, 0, 0, CABLE_DEFAULT),
