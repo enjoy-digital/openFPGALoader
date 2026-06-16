@@ -569,7 +569,7 @@ int main(int argc, char **argv)
 			fpga = new CologneChip(jtag, args.bit_file, args.file_type,
 				args.prg_type, args.board, args.cable, args.verify, args.verbose);
 #else
-			printError("Support for Gowin FPGAs was not enabled at compile time");
+			printError("Support for Cologne Chip FPGAs was not enabled at compile time");
 			delete(jtag);
 			return EXIT_FAILURE;
 #endif
@@ -756,7 +756,7 @@ int spi_comm(struct arguments args, const cable_t &cable,
 				board->reset_pin, board->done_pin, DBUS6, board->oe_pin,
 				args.verify, args.verbose);
 #else
-			printError("Support for Gowin FPGAs was not enabled at compile time");
+			printError("Support for Cologne Chip FPGAs was not enabled at compile time");
 			return EXIT_FAILURE;
 #endif
 		} else {
@@ -986,7 +986,7 @@ int parse_opt(int argc, char **argv, struct arguments *args,
 				cxxopts::value<unsigned int>(args->offset))
 			("pins", "pin config TDI:TDO:TCK:TMS or MOSI:MISO:SCK:CS[:HOLDN:WPN]",
 				cxxopts::value<std::vector<std::string>>(pins))
-			("probe-firmware", "firmware for JTAG probe (usbBlasterII)",
+			("probe-firmware", "firmware for JTAG probe (usbBlasterII/xilinxPlatformCableUsb)",
 				cxxopts::value<std::string>(args->probe_firmware))
 			("protect-flash",   "protect SPI flash area",
 				cxxopts::value<uint32_t>(args->protect_flash))
