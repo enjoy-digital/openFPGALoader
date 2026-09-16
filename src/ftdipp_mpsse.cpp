@@ -172,14 +172,62 @@ void FTDIpp_MPSSE::open_device(const std::string &serial, unsigned int baudrate)
 		throw std::runtime_error(err);
 	}
 
-	if (_bus == 0 && _addr == 0)
+	if (_bus == 0 && _addr == 0) {
 		ret = ftdi_usb_open_desc_index(_ftdi, _vid, _pid, NULL, serial.empty() ? NULL : serial.c_str(), _index);
-	else
+		if (ret < 0 && serial.empty()) {
+			// Some FTDI clones (notably the Sipeed JTAG Debugger on the
+			// Tang Primer 20K) reject ftdi_usb_open_desc_index()'s reset
+			// sequence. Open the matching device through libusb and hand
+			// the raw handle to libftdi instead.
+			libusb_device **devs = NULL;
+			ssize_t count = libusb_get_device_list(NULL, &devs);
+			if (count >= 0) {
+				unsigned int match = 0;
+				libusb_device *found = NULL;
+				for (ssize_t i = 0; i < count; i++) {
+					struct libusb_device_descriptor desc;
+					if (libusb_get_device_descriptor(devs[i], &desc) != 0)
+						continue;
+					if ((int)desc.idVendor == _vid && (int)desc.idProduct == _pid) {
+						if (match == (unsigned int)_index) {
+							found = devs[i];
+							break;
+						}
+						match++;
+					}
+				}
+				if (found != NULL)
+					ret = ftdi_usb_open_dev(_ftdi, found);
+			}
+			if (devs != NULL)
+				libusb_free_device_list(devs, 1);
+		}
+	} else {
 #if (FTDI_VERSION < 104)
 		ret = ftdi_usb_open_desc(_ftdi, _vid, _pid, _product, NULL);
 #else
 		ret = ftdi_usb_open_bus_addr(_ftdi, _bus, _addr);
 #endif
+		if (ret < 0) {
+			// Same FTDI clone workaround, addressed by USB bus/address.
+			libusb_device **devs = NULL;
+			ssize_t count = libusb_get_device_list(NULL, &devs);
+			if (count >= 0) {
+				libusb_device *found = NULL;
+				for (ssize_t i = 0; i < count; i++) {
+					if (libusb_get_bus_number(devs[i]) == _bus &&
+							libusb_get_device_address(devs[i]) == _addr) {
+						found = devs[i];
+						break;
+					}
+				}
+				if (found != NULL)
+					ret = ftdi_usb_open_dev(_ftdi, found);
+			}
+			if (devs != NULL)
+				libusb_free_device_list(devs, 1);
+		}
+	}
 	if (ret < 0) {
 		char description[256];
 		if (_bus == 0 || _addr == 0)
